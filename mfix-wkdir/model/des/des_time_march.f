@@ -132,6 +132,10 @@ MODULE DES_TIME_MARCH
             
          END DO
          
+! ========================================================================= !         
+! ========================================================================= !         
+! ========================================================================= !         
+
          ! ! Calculate inter particle forces acting (collisional, cohesion)
          ! CALL CALC_FORCE_DEM
          
@@ -145,15 +149,17 @@ MODULE DES_TIME_MARCH
          
          ! ! Update position and velocities
          ! CALL CFNEWVALUES
-         
-         !> COLLISION NUMBER COMPUTATION
+
+! ========================================================================= !         
+! ========================================================================= !         
+! ========================================================================= !         
          
          NB_CONTACTS = 0
 
-         PRINT*,PARTICLES
+         !PRINT*,PARTICLES
 
-         PRINT*,"NB CONTACTS 1",NB_CONTACTS
-         PRINT*,"NEIGHBORS INDEX 1",NEIGHBOR_INDEX(1),NEIGHBOR_INDEX(2)
+         !PRINT*,"NB CONTACTS 1",NB_CONTACTS
+         !PRINT*,"NEIGHBORS INDEX 1",NEIGHBOR_INDEX(1),NEIGHBOR_INDEX(2)
          
          !CALL MPI_FINALIZE(IERR)
          !STOP
@@ -165,32 +171,27 @@ MODULE DES_TIME_MARCH
          !    NB_CONTACTS = NB_CONTACTS + CC_END - CC_START
          ! END DO
 
-         !PRINT*,"NB CONTACTS",NB_CONTACTS
+         !> NEIGHBOR SEARCH
+         CALL NEIGHBOUR_ME
 
+         !PRINT*,"NB CONTACTS 2",NB_CONTACTS
+         !PRINT*,"NEIGHBORS INDEX 2",NEIGHBOR_INDEX(1),NEIGHBOR_INDEX(2)
+         
          !CALL MPI_FINALIZE(IERR)
          !STOP
-         
-         !> NEIGHBOR SEARCH
-         CALL NEIGHBOUR
-
-         PRINT*,"NB CONTACTS 2",NB_CONTACTS
-         PRINT*,"NEIGHBORS INDEX 2",NEIGHBOR_INDEX(1),NEIGHBOR_INDEX(2)
-         
-         CALL MPI_FINALIZE(IERR)
-         STOP
          
          PN = 0
          VM = 0
          DPN = 0
          ACTIVE = .FALSE.
 
-         PRINT*,ACTIVE
+         !PRINT*,ACTIVE
 
          !> CONNECTIVITY
          NB_CONTACTS = 0
          
          DO P = 1, PARTICLES
-            DO NLGS = 1, 10
+            !DO NLGS = 1, 10
                CC_START = 1
                IF (P.GT.1) CC_START = NEIGHBOR_INDEX_ME(P-1)
                CC_END = NEIGHBOR_INDEX_ME(P)
@@ -202,23 +203,25 @@ MODULE DES_TIME_MARCH
 
                   PRINT*,"NOMBRE DE CONTACTS: ",NB_CONTACTS
                   PRINT*,"CONNECTIVITE P -- I: ",P," <==> ",I
-               END DO
                
 ! ==================================================================== !               
 ! ================== CONTACT CONDITION + ACTIVE SET ================== !      
 ! ==================================================================== !               
-               !DO C = 1, NB_CONTACTS
+                  !DO C = 1, NB_CONTACTS
                   
-               !END DO
+                  !END DO
 ! ==================================================================== !                 
 ! ==================================================================== !               
 ! ==================================================================== !               
-
+               END DO
                IF ((CC_END-CC_START)==0) PRINT*,"CONNECTIVITE P -- P: ",P," <==> ",P
                
-            END DO
+            !END DO
          END DO
-      
+
+         CALL MPI_FINALIZE(IERR)
+         STOP
+         
 ! Update time to reflect changes
          S_TIME = S_TIME + DTSOLID
          
