@@ -1,288 +1,263 @@
-module m_particle_base
-  implicit none
-  type particle
-     real(kind=8) :: x=0,y=0
-     real(kind=8) :: u=0,v=0
-     real(kind=8) :: fx=0,fy=0
-     real(kind=8) :: m=1
-     real(kind=8) :: rho=1
-     real(kind=8) :: r=1
+MODULE M_PARTICLE_BASE
+  IMPLICIT NONE
+  TYPE PARTICLE
+     REAL(KIND=8) :: X=0,Y=0
+     REAL(KIND=8) :: U=0,V=0
+     REAL(KIND=8) :: FX=0,FY=0
+     REAL(KIND=8) :: M=1
+     REAL(KIND=8) :: RHO=1
+     REAL(KIND=8) :: R=1
      
-     integer bc_x_flag 
-     integer bc_y_flag 
+     INTEGER BC_X_FLAG 
+     INTEGER BC_Y_FLAG 
 
-     real(kind=8) :: data
-     real(kind=8) :: rx=0,ry=0
-  end type particle
+     REAL(KIND=8) :: DATA
+     REAL(KIND=8) :: RX=0,RY=0
+  END TYPE PARTICLE
 
-contains
-  subroutine particle_copy(p_old,p_new)
-    implicit none
-    type(particle)::p_new,p_old
-    real(kind=8) :: fx,fy,dt
+CONTAINS
+  SUBROUTINE PARTICLE_COPY(P_OLD,P_NEW)
+    IMPLICIT NONE
+    TYPE(PARTICLE)::P_NEW,P_OLD
+    REAL(KIND=8) :: FX,FY,DT
 
-    !> velocity update
-    p_old%u = p_new%u 
-    p_old%v = p_new%v
-    p_old%x = p_new%x 
-    p_old%y = p_new%y
+    !> VELOCITY UPDATE
+    P_OLD%U = P_NEW%U 
+    P_OLD%V = P_NEW%V
+    P_OLD%X = P_NEW%X 
+    P_OLD%Y = P_NEW%Y
 
-    p_old%fx = p_new%fx 
-    p_old%fy = p_new%fy
+    P_OLD%FX = P_NEW%FX 
+    P_OLD%FY = P_NEW%FY
 
-    p_old%m = p_new%m
-    p_old%r = p_new%r
-    p_old%rho = p_new%rho
+    P_OLD%M = P_NEW%M
+    P_OLD%R = P_NEW%R
+    P_OLD%RHO = P_NEW%RHO
 
-  end subroutine particle_copy
+  END SUBROUTINE PARTICLE_COPY
 
-  subroutine particle_zero(p)
-    implicit none
-    type(particle)::p
-    !> velocity update
-    p%u = 0.0
-    p%v = 0.0
-    p%x = 0.0
-    p%y = 0.0
-    p%fx = 0.0
-    p%fy = 0.0
-  end subroutine particle_zero
+  ! SUBROUTINE PARTICLE_ZERO(P)
+  !   IMPLICIT NONE
+  !   TYPE(PARTICLE)::P
+  !   !> VELOCITY UPDATE
+  !   P%U = 0.0
+  !   P%V = 0.0
+  !   P%X = 0.0
+  !   P%Y = 0.0
+  !   P%FX = 0.0
+  !   P%FY = 0.0
+  ! END SUBROUTINE PARTICLE_ZERO
   
-  subroutine make_a_time_step(p_old,p_new,dt,fx,fy)
-    implicit none
-    type(particle)::p_new,p_old
-    real(kind=8) :: fx,fy,dt
+  ! SUBROUTINE MAKE_A_TIME_STEP(P_OLD,P_NEW,DT,FX,FY)
+  !   IMPLICIT NONE
+  !   TYPE(PARTICLE)::P_NEW,P_OLD
+  !   REAL(KIND=8) :: FX,FY,DT
 
-    !> velocity update
-    p_new%u = p_old%u + dt*p_old%fx/p_old%m
-    p_new%v = p_old%v + dt*p_old%fy/p_old%m
-    !> displacement update
-    p_new%x = p_old%x + dt*p_new%u
-    p_new%y = p_old%y + dt*p_new%v
+  !   !> VELOCITY UPDATE
+  !   P_NEW%U = P_OLD%U + DT*P_OLD%FX/P_OLD%M
+  !   P_NEW%V = P_OLD%V + DT*P_OLD%FY/P_OLD%M
+  !   !> DISPLACEMENT UPDATE
+  !   P_NEW%X = P_OLD%X + DT*P_NEW%U
+  !   P_NEW%Y = P_OLD%Y + DT*P_NEW%V
     
-  end subroutine make_a_time_step
+  ! END SUBROUTINE MAKE_A_TIME_STEP
 
-  subroutine export(filename,plist,N,it)
-    implicit none
-    character(len=*) :: filename
-    type(particle),dimension(N) :: plist
-    integer,optional :: it
-    integer :: N,k
+  SUBROUTINE EXPORT(FILENAME,PLIST,N,IT)
+    IMPLICIT NONE
+    CHARACTER(LEN=*) :: FILENAME
+    TYPE(PARTICLE),DIMENSION(N) :: PLIST
+    INTEGER,OPTIONAL :: IT
+    INTEGER :: N,K
     
     
-    if (present(it)) then
-       open(unit=24,file=trim(filename),Access = 'append',Status='old')
-       write(24,'("ZONE T=""",i5 ,""" ")'),it
-    else
-       open(unit=24,file=trim(filename))
-       write(24,'("ZONE T=""",i5 ,""" ")'),0
-    end if
-    do k=1,N
-       write(24,'(10(e15.8,1x))')plist(k)%x,plist(k)%y,plist(k)%u&
-            &,plist(k)%v,plist(k)%r,plist(k)%rx,plist(k)%ry
-    end do
-    close(24)
+    IF (PRESENT(IT)) THEN
+       OPEN(UNIT=24,FILE=TRIM(FILENAME),ACCESS = 'APPEND',STATUS='OLD')
+       WRITE(24,'("ZONE T=""",I5 ,""" ")'),IT
+    ELSE
+       OPEN(UNIT=24,FILE=TRIM(FILENAME))
+       WRITE(24,'("ZONE T=""",I5 ,""" ")'),0
+    END IF
+    DO K=1,N
+       WRITE(24,'(10(E15.8,1X))')PLIST(K)%X,PLIST(K)%Y,PLIST(K)%U&
+            &,PLIST(K)%V,PLIST(K)%R,PLIST(K)%RX,PLIST(K)%RY
+    END DO
+    CLOSE(24)
     
-  end subroutine export
+  END SUBROUTINE EXPORT
 
-  subroutine update_contact_list(list_of_particles,nb_particles,list_of_contacts,nb_contacts,distance_contact)
-    implicit none
- 
-    integer :: nb_particles,nb_contacts
-    type(particle),dimension(:),allocatable::list_of_particles
-    integer ,dimension(:,:),allocatable:: list_of_contacts
-    real(kind=8) :: distance_contact
+  SUBROUTINE UPDATE_CONTACT_LIST(LIST_OF_PARTICLES,NB_PARTICLES,LIST_OF_CONTACTS,NB_CONTACTS,DISTANCE_CONTACT)
+    IMPLICIT NONE
+    
+    INTEGER :: NB_PARTICLES,NB_CONTACTS
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE::LIST_OF_PARTICLES
+    INTEGER ,DIMENSION(:,:),ALLOCATABLE:: LIST_OF_CONTACTS
+    REAL(KIND=8) :: DISTANCE_CONTACT
 
-    integer :: p,q
-    real(kind=8) :: d2,dc2
-    real(kind=8) :: xp,xq
-    real(kind=8) :: yp,yq
-    real(kind=8) :: rq,rp
-
-    real(kind=8) :: xc,yc
-    real(kind=8) :: nx,ny
-    real(kind=8) :: dx,dy
-    real(kind=8) :: xcp,xcq
-    real(kind=8) :: ycp,ycq
-    real(kind=8) :: c_dot_n,cp_dot_n,cq_dot_n,g
-   
-    dc2 = (0.1*distance_contact)**2
-    !print*,dc2
-
-    list_of_particles(1:nb_particles)%data=0
-    nb_contacts=0
-    do p = 1 , nb_particles-4
-       do q = p+1 , nb_particles
+    INTEGER :: P,Q
+    REAL(KIND=8) :: D2,DC2
+    REAL(KIND=8) :: XP,XQ
+    REAL(KIND=8) :: YP,YQ
+    REAL(KIND=8) :: RQ,RP
+    
+    REAL(KIND=8) :: XC,YC
+    REAL(KIND=8) :: NX,NY
+    REAL(KIND=8) :: DX,DY
+    REAL(KIND=8) :: XCP,XCQ
+    REAL(KIND=8) :: YCP,YCQ
+    REAL(KIND=8) :: C_DOT_N,CP_DOT_N,CQ_DOT_N,G
+    
+    DC2 = (0.1*DISTANCE_CONTACT)**2
+    !PRINT*,DC2
+    
+    LIST_OF_PARTICLES(1:NB_PARTICLES)%DATA=0
+    NB_CONTACTS=0
+    DO P = 1 , NB_PARTICLES-4
+       DO Q = P+1 , NB_PARTICLES
           
-          dx = (list_of_particles(q)%x-list_of_particles(p)%x)
-          dy = (list_of_particles(q)%y-list_of_particles(p)%y)
+          DX = (LIST_OF_PARTICLES(Q)%X-LIST_OF_PARTICLES(P)%X)
+          DY = (LIST_OF_PARTICLES(Q)%Y-LIST_OF_PARTICLES(P)%Y)
 
-!!$          nx = dx/sqrt(dx**2+dy**2)
-!!$          ny = dy/sqrt(dx**2+dy**2)
-!!$          
-!!$          xcp= (list_of_particles(p)%x + list_of_particles(p)%r*nx)
-!!$          ycp= (list_of_particles(p)%y + list_of_particles(p)%r*ny)
-!!$
-!!$          xcq= (list_of_particles(q)%x - list_of_particles(q)%r*nx)
-!!$          ycq= (list_of_particles(q)%y - list_of_particles(q)%r*ny)
-!!$           
-!!$           xc =  0.5*(xcp+xcq)
-!!$           yc =  0.5*(ycp+ycq)
-!!$           
-!!$           c_dot_n  = xc*nx+yc*ny !> projection du centre en local
-!!$           cp_dot_n = (xcp*nx+ycp*ny) - c_dot_n
-!!$           cq_dot_n = (xcq*nx+ycq*ny) - c_dot_n
-!!$          
-!!$!           print*,p,q,cp_dot_n**2
-!!$           if ((cp_dot_n**2+cq_dot_n**2)<dc2) then
-!!$              nb_contacts = nb_contacts + 1
-!!$              list_of_contacts(nb_contacts,1) = p
-!!$              list_of_contacts(nb_contacts,2) = q
-!!$              list_of_particles(p)%data =  p
-!!$           end if
-           
-
-           g = sqrt(dx**2+dy**2)-(list_of_particles(p)%r+list_of_particles(q)%r)
-           if ( g<0 ) then
-              nb_contacts = nb_contacts + 1
-              list_of_contacts(nb_contacts,1) = p
-              list_of_contacts(nb_contacts,2) = q
-              list_of_particles(p)%data =  p
-           end if
-
-
-
-        end do
+          G = SQRT(DX**2+DY**2)-(LIST_OF_PARTICLES(P)%R+LIST_OF_PARTICLES(Q)%R)
+          IF ( G<0 ) THEN
+             NB_CONTACTS = NB_CONTACTS + 1
+             LIST_OF_CONTACTS(NB_CONTACTS,1) = P
+             LIST_OF_CONTACTS(NB_CONTACTS,2) = Q
+             LIST_OF_PARTICLES(P)%DATA =  P
+          END IF
+          
+          
+          
+       END DO
        
-     end do
-     
-   end subroutine update_contact_list
-   
-   subroutine get_distance(list_of_particles,nb_particles,list_of_contacts,nb_contacts, active,dmax)
-    implicit none
-    integer :: nb_particles,nb_contacts
-    type(particle),dimension(:),allocatable::list_of_particles
-    integer ,dimension(:,:),allocatable:: list_of_contacts
-    logical ,dimension(:) , allocatable :: active
-    real(kind=8) :: dmax
+    END DO
+    
+  END SUBROUTINE UPDATE_CONTACT_LIST
+  
+  SUBROUTINE GET_DISTANCE(LIST_OF_PARTICLES,NB_PARTICLES,LIST_OF_CONTACTS,NB_CONTACTS, ACTIVE,DMAX)
+    IMPLICIT NONE
+    INTEGER :: NB_PARTICLES,NB_CONTACTS
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE::LIST_OF_PARTICLES
+    INTEGER ,DIMENSION(:,:),ALLOCATABLE:: LIST_OF_CONTACTS
+    LOGICAL ,DIMENSION(:) , ALLOCATABLE :: ACTIVE
+    REAL(KIND=8) :: DMAX
     
 
-    integer :: c,p,q
-    real(kind=8) :: d2,dc2
-    real(kind=8) :: xp,xq
-    real(kind=8) :: yp,yq
-    real(kind=8) :: rq,rp
+    INTEGER :: C,P,Q
+    REAL(KIND=8) :: D2,DC2
+    REAL(KIND=8) :: XP,XQ
+    REAL(KIND=8) :: YP,YQ
+    REAL(KIND=8) :: RQ,RP
 
-    real(kind=8) :: xc,yc
-    real(kind=8) :: nx,ny
-    real(kind=8) :: dx,dy
-    real(kind=8) :: xcp,xcq
-    real(kind=8) :: ycp,ycq
+    REAL(KIND=8) :: XC,YC
+    REAL(KIND=8) :: NX,NY
+    REAL(KIND=8) :: DX,DY
+    REAL(KIND=8) :: XCP,XCQ
+    REAL(KIND=8) :: YCP,YCQ
     
    
-    dmax=0
-    do c = 1 , nb_contacts
+    DMAX=0
+    DO C = 1 , NB_CONTACTS
 
-       if (active(c)) then
-          p = list_of_contacts(c,1)
-          q = list_of_contacts(c,2)
+       IF (ACTIVE(C)) THEN
+          P = LIST_OF_CONTACTS(C,1)
+          Q = LIST_OF_CONTACTS(C,2)
           
           !>
-          dx = (list_of_particles(q)%x-list_of_particles(p)%x)
-          dy = (list_of_particles(q)%y-list_of_particles(p)%y)
+          DX = (LIST_OF_PARTICLES(Q)%X-LIST_OF_PARTICLES(P)%X)
+          DY = (LIST_OF_PARTICLES(Q)%Y-LIST_OF_PARTICLES(P)%Y)
           
-          nx = dx/sqrt(dx**2+dy**2)
-          ny = dy/sqrt(dx**2+dy**2)
+          NX = DX/SQRT(DX**2+DY**2)
+          NY = DY/SQRT(DX**2+DY**2)
           
-          xcp= (list_of_particles(p)%x + list_of_particles(p)%r*nx)
-          ycp= (list_of_particles(p)%y + list_of_particles(p)%r*ny)
+          XCP= (LIST_OF_PARTICLES(P)%X + LIST_OF_PARTICLES(P)%R*NX)
+          YCP= (LIST_OF_PARTICLES(P)%Y + LIST_OF_PARTICLES(P)%R*NY)
           
-          xcq= (list_of_particles(q)%x - list_of_particles(q)%r*nx)
-          ycq= (list_of_particles(q)%y - list_of_particles(q)%r*ny)
+          XCQ= (LIST_OF_PARTICLES(Q)%X - LIST_OF_PARTICLES(Q)%R*NX)
+          YCQ= (LIST_OF_PARTICLES(Q)%Y - LIST_OF_PARTICLES(Q)%R*NY)
           
-          dmax = sqrt((xcq-xcp)**2+(ycq-ycp)**2)
-          dmax = max(0d0,dmax)
-       end if
+          DMAX = SQRT((XCQ-XCP)**2+(YCQ-YCP)**2)
+          DMAX = MAX(0D0,DMAX)
+       END IF
        
-    end do
+    END DO
     
     
-  end subroutine get_distance
+  END SUBROUTINE GET_DISTANCE
    
 
-  subroutine export_reaction(particles,nb_p,contact_particles,nb_c,pn)
-    implicit none
-    integer :: nb_p,nb_c
-    type(particle),dimension(:),allocatable::particles
-    integer ,dimension(:,:),allocatable:: contact_particles
-!    logical ,dimension(:) , allocatable :: active
-    real(kind=8) ,dimension(:) , allocatable :: pn
-    real(kind=8) :: dmax
+  SUBROUTINE EXPORT_REACTION(PARTICLES,NB_P,CONTACT_PARTICLES,NB_C,PN)
+    IMPLICIT NONE
+    INTEGER :: NB_P,NB_C
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE::PARTICLES
+    INTEGER ,DIMENSION(:,:),ALLOCATABLE:: CONTACT_PARTICLES
+!    LOGICAL ,DIMENSION(:) , ALLOCATABLE :: ACTIVE
+    REAL(KIND=8) ,DIMENSION(:) , ALLOCATABLE :: PN
+    REAL(KIND=8) :: DMAX
     
 
-    integer :: c,p,q
-    real(kind=8) :: nx,ny
-    real(kind=8) :: dx,dy
+    INTEGER :: C,P,Q
+    REAL(KIND=8) :: NX,NY
+    REAL(KIND=8) :: DX,DY
     
-    dmax=0
-    particles(:)%rx=0
-    particles(:)%ry=0
-    do c = 1 , nb_c
-       p = contact_particles(c,1)
-       q = contact_particles(c,2)
+    DMAX=0
+    PARTICLES(:)%RX=0
+    PARTICLES(:)%RY=0
+    DO C = 1 , NB_C
+       P = CONTACT_PARTICLES(C,1)
+       Q = CONTACT_PARTICLES(C,2)
        !>
-       dx = (particles(q)%x-particles(p)%x)
-       dy = (particles(q)%y-particles(p)%y)
+       DX = (PARTICLES(Q)%X-PARTICLES(P)%X)
+       DY = (PARTICLES(Q)%Y-PARTICLES(P)%Y)
        
-       nx = dx/sqrt(dx**2+dy**2)
-       ny = dy/sqrt(dx**2+dy**2)
+       NX = DX/SQRT(DX**2+DY**2)
+       NY = DY/SQRT(DX**2+DY**2)
 
-!       particles(p)%rx = particles(p)%rx - pn(c)*nx
-!       particles(p)%ry = particles(p)%ry - pn(c)*ny 
-       particles(p)%rx = particles(p)%rx + abs(pn(c))
-       particles(q)%ry = 0
+!       PARTICLES(P)%RX = PARTICLES(P)%RX - PN(C)*NX
+!       PARTICLES(P)%RY = PARTICLES(P)%RY - PN(C)*NY 
+       PARTICLES(P)%RX = PARTICLES(P)%RX + ABS(PN(C))
+       PARTICLES(Q)%RY = 0
        
-    end do
+    END DO
     
     
-  end subroutine export_reaction
+  END SUBROUTINE EXPORT_REACTION
 
   
 
 
-   subroutine get_local_vel(pi,pj,pti,ptj,un,ut)
-     implicit none
-     type(particle) :: pi,pj   !> particule dont on 
-     type(particle) :: pti,ptj !> pour le repere local
-     real(kind=8)   :: un,ut   !> vitesse relative tangentielle
+   SUBROUTINE GET_LOCAL_VEL(PI,PJ,PTI,PTJ,UN,UT)
+     IMPLICIT NONE
+     TYPE(PARTICLE) :: PI,PJ   !> PARTICULE DONT ON 
+     TYPE(PARTICLE) :: PTI,PTJ !> POUR LE REPERE LOCAL
+     REAL(KIND=8)   :: UN,UT   !> VITESSE RELATIVE TANGENTIELLE
  
-    real(kind=8) :: du,dv
-    real(kind=8) :: dx,dy
-    real(kind=8) :: nx,ny
-    real(kind=8) :: tx,ty
+    REAL(KIND=8) :: DU,DV
+    REAL(KIND=8) :: DX,DY
+    REAL(KIND=8) :: NX,NY
+    REAL(KIND=8) :: TX,TY
     
 
-    !> vitesse relative repere global
-    du = pj%u - pi%u
-    dv = pj%v - pi%v
+    !> VITESSE RELATIVE REPERE GLOBAL
+    DU = PJ%U - PI%U
+    DV = PJ%V - PI%V
 
-    !> vitesse relative repere local
+    !> VITESSE RELATIVE REPERE LOCAL
 
-    dx = ptj%x - pti%x
-    dy = ptj%y - pti%y
-    !> n(nx,ny) normale a partir de ptj et pti 
-    nx = dx/(sqrt(dx**2+dy**2))
-    ny = dy/(sqrt(dx**2+dy**2))
-    !> tau(tx,ty) tq (n vec tau) > 0 en 2d 
-    tx = -ny 
-    ty = +nx
+    DX = PTJ%X - PTI%X
+    DY = PTJ%Y - PTI%Y
+    !> N(NX,NY) NORMALE A PARTIR DE PTJ ET PTI 
+    NX = DX/(SQRT(DX**2+DY**2))
+    NY = DY/(SQRT(DX**2+DY**2))
+    !> TAU(TX,TY) TQ (N VEC TAU) > 0 EN 2D 
+    TX = -NY 
+    TY = +NX
     
-    !> projection sur la tenge
-    un = (du*nx+dv*ny)
-    ut = du*tx+dv*ty
+    !> PROJECTION SUR LA TENGE
+    UN = (DU*NX+DV*NY)
+    UT = DU*TX+DV*TY
     
-  end subroutine get_local_vel
+  END SUBROUTINE GET_LOCAL_VEL
   
   
-end module m_particle_base
+END MODULE M_PARTICLE_BASE
 

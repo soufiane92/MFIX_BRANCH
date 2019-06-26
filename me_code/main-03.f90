@@ -1,589 +1,589 @@
 
-program main
-  use m_particle_base
-  implicit none
+PROGRAM MAIN
+  USE M_PARTICLE_BASE
+  IMPLICIT NONE
   
-  integer :: np
-  real(kind=8),dimension(2) :: xmin,xmax
-  real(kind=8) :: radius
-  real(kind=8) :: dt
-  real(kind=8) :: en
-  integer :: it
+  INTEGER :: NP
+  REAL(KIND=8),DIMENSION(2) :: XMIN,XMAX
+  REAL(KIND=8) :: RADIUS
+  REAL(KIND=8) :: DT
+  REAL(KIND=8) :: EN
+  INTEGER :: IT
   
-  type(particle),dimension(:),allocatable:: p_new,p_old
-  type(particle),dimension(:),allocatable:: p_free,p_demi
-  type(particle),dimension(:),allocatable:: p_nlgs
+  TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: P_NEW,P_OLD
+  TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: P_FREE,P_DEMI
+  TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: P_NLGS
   
-  integer :: nb_contacts
-  integer ,dimension(:,:),allocatable :: list_of_contacts
-  integer :: c,p,q
+  INTEGER :: NB_CONTACTS
+  INTEGER ,DIMENSION(:,:),ALLOCATABLE :: LIST_OF_CONTACTS
+  INTEGER :: C,P,Q
   
-  real(kind=8) :: un_new,ut_new
-  real(kind=8) :: un_old,ut_old
-  real(kind=8) :: vm_n,vm_t
+  REAL(KIND=8) :: UN_NEW,UT_NEW
+  REAL(KIND=8) :: UN_OLD,UT_OLD
+  REAL(KIND=8) :: VM_N,VM_T
 
-  logical ,dimension(:) , allocatable :: active
-  real(kind=8) ,dimension(:) , allocatable :: pn,vm,dpn
+  LOGICAL ,DIMENSION(:) , ALLOCATABLE :: ACTIVE
+  REAL(KIND=8) ,DIMENSION(:) , ALLOCATABLE :: PN,VM,DPN
   
-  real(kind=8) :: rx,ry,tau_n,gamma,wnn,meq
-  real(kind=8) :: s,sp,sq,pi
+  REAL(KIND=8) :: RX,RY,TAU_N,GAMMA,WNN,MEQ
+  REAL(KIND=8) :: S,SP,SQ,PI
 
-  real(kind=8) :: xc,yc
-  real(kind=8) :: nx,ny
-  real(kind=8) :: dx,dy
-  real(kind=8) :: g
+  REAL(KIND=8) :: XC,YC
+  REAL(KIND=8) :: NX,NY
+  REAL(KIND=8) :: DX,DY
+  REAL(KIND=8) :: G
   
-  real(kind=8) :: xcp,xcq
-  real(kind=8) :: ycp,ycq
-  real(kind=8) :: c_dot_n,cp_dot_n,cq_dot_n
+  REAL(KIND=8) :: XCP,XCQ
+  REAL(KIND=8) :: YCP,YCQ
+  REAL(KIND=8) :: C_DOT_N,CP_DOT_N,CQ_DOT_N
 
-  integer :: nl_it
+  INTEGER :: NL_IT
 
-  real(kind=8) :: dmoy,res,dmax,tc,ex(2)
+  REAL(KIND=8) :: DMOY,RES,DMAX,TC,EX(2)
 
 
-  integer           :: test_case
-  integer,parameter :: free_falling_particle = 101
-  integer,parameter :: particle_collision    = 102
-  integer,parameter :: dam_break             = 103
+  INTEGER           :: TEST_CASE
+  INTEGER,PARAMETER :: FREE_FALLING_PARTICLE = 101
+  INTEGER,PARAMETER :: PARTICLE_COLLISION    = 102
+  INTEGER,PARAMETER :: DAM_BREAK             = 103
   
-  xmin=0
-  xmax=1
+  XMIN=0
+  XMAX=1
 
-  !print*,xmin,xmax
-  !stop
+  !PRINT*,XMIN,XMAX
+  !STOP
   
-  !test_case = free_falling_particle
-  !test_case = particle_collision
-  test_case = dam_break
+  !TEST_CASE = FREE_FALLING_PARTICLE
+  !TEST_CASE = PARTICLE_COLLISION
+  TEST_CASE = DAM_BREAK
 
-  !print*,test_case
-  !stop
+  !PRINT*,TEST_CASE
+  !STOP
 
   
-  !> 1:np-4
-  !> np-5:np
-  !call Initialize_FreeFallingParticle(p_old,np)
+  !> 1:NP-4
+  !> NP-5:NP
+  !CALL INITIALIZE_FREEFALLINGPARTICLE(P_OLD,NP)
   
   ! ========================================== !
-  ! print*,"0",np ====== > "ICI np = 16777216"
+  ! PRINT*,"0",NP ====== > "ICI NP = 16777216"
   ! ========================================== !
   
-  if      (test_case==free_falling_particle) then
-     call Initialize_FreeFallingParticle(p_old,np)
+  IF      (TEST_CASE==FREE_FALLING_PARTICLE) THEN
+     CALL INITIALIZE_FREEFALLINGPARTICLE(P_OLD,NP)
 
      ! ========================================== !
-     ! print*,"4",np ====== > "ICI np = 5"
+     ! PRINT*,"4",NP ====== > "ICI NP = 5"
      ! ========================================== !
 
      
-  else if (test_case==dam_break) then
-     call Initialize_DAM(p_old,np)
-  end if
+  ELSE IF (TEST_CASE==DAM_BREAK) THEN
+     CALL INITIALIZE_DAM(P_OLD,NP)
+  END IF
   
   
-  allocate( p_new (np) )
-  allocate( p_free(np) )
-  allocate( p_demi(np) )
+  ALLOCATE( P_NEW (NP) )
+  ALLOCATE( P_FREE(NP) )
+  ALLOCATE( P_DEMI(NP) )
   
-  allocate( list_of_contacts(100*np,2) )
-  allocate( active( 100*np ))
+  ALLOCATE( LIST_OF_CONTACTS(100*NP,2) )
+  ALLOCATE( ACTIVE( 100*NP ))
 
-  allocate( pn( 100*np ))
-  allocate(dpn( 100*np ))
-  allocate( vm( 100*np ))
+  ALLOCATE( PN( 100*NP ))
+  ALLOCATE(DPN( 100*NP ))
+  ALLOCATE( VM( 100*NP ))
 
-  !print*,np
-  !print*,p_old(1)
-  !stop
+  !PRINT*,NP
+  !PRINT*,P_OLD(1)
+  !STOP
   
-  !> je cherche le rayon le plus petit
-  radius = huge(0d0)
-  do p=1,np-4
-     radius=min(radius,p_old(p)%r)
-  end do
+  !> JE CHERCHE LE RAYON LE PLUS PETIT
+  RADIUS = HUGE(0D0)
+  DO P=1,NP-4
+     RADIUS=MIN(RADIUS,P_OLD(P)%R)
+  END DO
   
-  !print*,radius
-  !stop
+  !PRINT*,RADIUS
+  !STOP
   
-  !> on fixe le pas de temps et le coefficient 
-  !> de restitution en
-  dt = 0.1*radius
-  en = 0.9
+  !> ON FIXE LE PAS DE TEMPS ET LE COEFFICIENT 
+  !> DE RESTITUTION EN
+  DT = 0.1*RADIUS
+  EN = 0.9
   
-  !print*,dt,en
-  !stop
+  !PRINT*,DT,EN
+  !STOP
 
-  if  (test_case==free_falling_particle) then
-     ! 100 pas de temps avant de tomber exactement sur la paroi
-     dt = sqrt(2*(0.5-radius)/10.)/100.
-     dt = dt/2
+  IF  (TEST_CASE==FREE_FALLING_PARTICLE) THEN
+     ! 100 PAS DE TEMPS AVANT DE TOMBER EXACTEMENT SUR LA PAROI
+     DT = SQRT(2*(0.5-RADIUS)/10.)/100.
+     DT = DT/2
      
-  end if
-  !print*,np
-  call export('out.dat',p_old,np-4)
-  !stop
+  END IF
+  !PRINT*,NP
+  CALL EXPORT('OUT.DAT',P_OLD,NP-4)
+  !STOP
   
-  !> initialisation des listes p_new,p_free et p_demi
-  !> à partir de p_old
-  do p=1,np
-     call particle_copy(p_new(p),p_old(p))
-     !print*,p_new(1),p_old(1)
-     !stop
-     call particle_copy(p_free(p),p_old(p))
-     call particle_copy(p_demi(p),p_old(p))
-  end do
+  !> INITIALISATION DES LISTES P_NEW,P_FREE ET P_DEMI
+  !> À PARTIR DE P_OLD
+  DO P=1,NP
+     CALL PARTICLE_COPY(P_NEW(P),P_OLD(P))
+     !PRINT*,P_NEW(1),P_OLD(1)
+     !STOP
+     CALL PARTICLE_COPY(P_FREE(P),P_OLD(P))
+     CALL PARTICLE_COPY(P_DEMI(P),P_OLD(P))
+  END DO
   
-  tc=0d0
-  !> initial kinetic energy
-  do it=1,1000
-     !print*,dt,np
-     !stop
-     tc = tc + dt
-     do p=1,np
+  TC=0D0
+  !> INITIAL KINETIC ENERGY
+  DO IT=1,1000
+     !PRINT*,DT,NP
+     !STOP
+     TC = TC + DT
+     DO P=1,NP
 
-        !> voir avec slide 47 de Dubois !
-        !> q_{k+1/2} =  q_{k} + 0.5 dt \dot{q}_{k} 
-        p_demi(p)%x = p_old(p)%x + 0.5*dt*p_old(p)%u
-        p_demi(p)%y = p_old(p)%y + 0.5*dt*p_old(p)%v
+        !> VOIR AVEC SLIDE 47 DE DUBOIS !
+        !> Q_{K+1/2} =  Q_{K} + 0.5 DT \DOT{Q}_{K} 
+        P_DEMI(P)%X = P_OLD(P)%X + 0.5*DT*P_OLD(P)%U
+        P_DEMI(P)%Y = P_OLD(P)%Y + 0.5*DT*P_OLD(P)%V
         
         
-        !> theta-schema 0.5
-        p_free(p)%u = p_old(p)%u + dt*0.5*(p_old(p)%fx+p_new(p)%fx)/p_new(p)%m
-        p_free(p)%v = p_old(p)%v + dt*0.5*(p_old(p)%fy+p_new(p)%fy)/p_new(p)%m
-        p_free(p)%x = p_old(p)%x + dt*0.5*(p_free(p)%u+p_old(p)%u)
-        p_free(p)%y = p_old(p)%y + dt*0.5*(p_free(p)%v+p_old(p)%v)
+        !> THETA-SCHEMA 0.5
+        P_FREE(P)%U = P_OLD(P)%U + DT*0.5*(P_OLD(P)%FX+P_NEW(P)%FX)/P_NEW(P)%M
+        P_FREE(P)%V = P_OLD(P)%V + DT*0.5*(P_OLD(P)%FY+P_NEW(P)%FY)/P_NEW(P)%M
+        P_FREE(P)%X = P_OLD(P)%X + DT*0.5*(P_FREE(P)%U+P_OLD(P)%U)
+        P_FREE(P)%Y = P_OLD(P)%Y + DT*0.5*(P_FREE(P)%V+P_OLD(P)%V)
         
-        !> theta-schema 1.0
-        !p_free(p)%u = p_old(p)%u + dt*1.0*(p_new(p)%fx)/p_new(p)%m
-        !p_free(p)%v = p_old(p)%v + dt*1.0*(p_new(p)%fy)/p_new(p)%m
+        !> THETA-SCHEMA 1.0
+        !P_FREE(P)%U = P_OLD(P)%U + DT*1.0*(P_NEW(P)%FX)/P_NEW(P)%M
+        !P_FREE(P)%V = P_OLD(P)%V + DT*1.0*(P_NEW(P)%FY)/P_NEW(P)%M
 
-        !> dot{q}_{0}{k+1} =  dot{q}_{free}{k}
-        p_new(p)%u = p_free(p)%u
-        p_new(p)%v = p_free(p)%v
+        !> DOT{Q}_{0}{K+1} =  DOT{Q}_{FREE}{K}
+        P_NEW(P)%U = P_FREE(P)%U
+        P_NEW(P)%V = P_FREE(P)%V
         
-     end do
+     END DO
      
-     !> recherche des contacts à partir de q_{k+1/2} 
-     call update_contact_list(p_demi,np,list_of_contacts,nb_contacts&
-          &,radius)
+     !> RECHERCHE DES CONTACTS À PARTIR DE Q_{K+1/2} 
+     CALL UPDATE_CONTACT_LIST(P_DEMI,NP,LIST_OF_CONTACTS,NB_CONTACTS&
+          &,RADIUS)
 !!$
-     !stop
+     !STOP
      
-     pn = 0
-     vm = 0
-     dpn = 0
-     active = .false.
+     PN = 0
+     VM = 0
+     DPN = 0
+     ACTIVE = .FALSE.
      
-     !> iteration nlgs
-     do nl_it=1,1000
-        res = 0
-        do c=1,nb_contacts
-           p = list_of_contacts(c,1)
-           q = list_of_contacts(c,2)
+     !> ITERATION NLGS
+     DO NL_IT=1,1000
+        RES = 0
+        DO C=1,NB_CONTACTS
+           P = LIST_OF_CONTACTS(C,1)
+           Q = LIST_OF_CONTACTS(C,2)
            !>
-           dx = (p_demi(q)%x-p_demi(p)%x)
-           dy = (p_demi(q)%y-p_demi(p)%y)
+           DX = (P_DEMI(Q)%X-P_DEMI(P)%X)
+           DY = (P_DEMI(Q)%Y-P_DEMI(P)%Y)
            
-           nx = dx/sqrt(dx**2+dy**2)
-           ny = dy/sqrt(dx**2+dy**2)
+           NX = DX/SQRT(DX**2+DY**2)
+           NY = DY/SQRT(DX**2+DY**2)
 
-           ! attention l'estimation distance n'est pas
-           ! sur un crank-Nicholson
-           !dx = (p_free(q)%x-p_free(p)%x)
-           !dy = (p_free(q)%y-p_free(p)%y)
-           dx = (p_demi(q)%x-p_demi(p)%x)
-           dy = (p_demi(q)%y-p_demi(p)%y)
+           ! ATTENTION L'ESTIMATION DISTANCE N'EST PAS
+           ! SUR UN CRANK-NICHOLSON
+           !DX = (P_FREE(Q)%X-P_FREE(P)%X)
+           !DY = (P_FREE(Q)%Y-P_FREE(P)%Y)
+           DX = (P_DEMI(Q)%X-P_DEMI(P)%X)
+           DY = (P_DEMI(Q)%Y-P_DEMI(P)%Y)
 
-           s = sqrt(dx**2+dy**2)-(p_demi(p)%r+p_demi(q)%r)
+           S = SQRT(DX**2+DY**2)-(P_DEMI(P)%R+P_DEMI(Q)%R)
            
-           !print*,"s ",nl_it,s
+           !PRINT*,"S ",NL_IT,S
 
-           if ( s<0 ) then   ! Contact condition 
+           IF ( S<0 ) THEN   ! CONTACT CONDITION 
 
-              un_old = (p_old(q)%u-p_old(p)%u)*nx + (p_old(q)%v-p_old(p)%v)*ny
-              un_new = (p_new(q)%u-p_new(p)%u)*nx + (p_new(q)%v-p_new(p)%v)*ny
+              UN_OLD = (P_OLD(Q)%U-P_OLD(P)%U)*NX + (P_OLD(Q)%V-P_OLD(P)%V)*NY
+              UN_NEW = (P_NEW(Q)%U-P_NEW(P)%U)*NX + (P_NEW(Q)%V-P_NEW(P)%V)*NY
               
-              vm(c) = (un_new + un_old*en)/(1+en)
+              VM(C) = (UN_NEW + UN_OLD*EN)/(1+EN)
               
-              meq = 2*p_new(p)%m*p_new(q)%m/(p_new(p)%m + p_new(q)%m) 
+              MEQ = 2*P_NEW(P)%M*P_NEW(Q)%M/(P_NEW(P)%M + P_NEW(Q)%M) 
               
-              gamma=1e3
-              tau_n = pn(c)-gamma*vm(c)*meq/dt
-
-              
-              !> active set
-              if (tau_n>0) then
-                 dpn(c) = - vm(c)*meq/dt*en
-                 active(c) = .true.
-              else
-                 dpn(c) = 0
-                 !active(c) = .false.
-              end if
-              
-              p_new(p)%u = p_new(p)%u + (-dpn(c))*dt/p_new(p)%m*nx!/(1+en)
-              p_new(p)%v = p_new(p)%v + (-dpn(c))*dt/p_new(p)%m*ny!/(1+en)
-              
-              p_new(q)%u = p_new(q)%u + (+dpn(c))*dt/p_new(q)%m*nx!/(1+en)
-              p_new(q)%v = p_new(q)%v + (+dpn(c))*dt/p_new(q)%m*ny!/(1+en)
-              
-              pn(c)=pn(c)+dpn(c)
-
-              !p_free(p)%x = p_old(p)%x + dt*0.5*(p_new(p)%u + p_old(p)%u )
-              !p_free(p)%y = p_old(p)%y + dt*0.5*(p_new(p)%v + p_old(p)%v )
-              
-              p_free(p)%x = p_old(p)%x + dt*p_new(p)%u 
-              p_free(p)%y = p_old(p)%y + dt*p_new(p)%v
-
-              p_free(q)%x = p_old(q)%x + dt*p_new(q)%u 
-              p_free(q)%y = p_old(q)%y + dt*p_new(q)%v 
+              GAMMA=1E3
+              TAU_N = PN(C)-GAMMA*VM(C)*MEQ/DT
 
               
-           else   ! s > 0
-              pn(c) = 0
-           end if
-           !print*,">",s,dt*dpn(1),p_new(p)%v,p_old(p)%v
-           !print*,">",s,dt*dpn(1),p_new(p)%v,p_old(p)%v
-        end do
+              !> ACTIVE SET
+              IF (TAU_N>0) THEN
+                 DPN(C) = - VM(C)*MEQ/DT*EN
+                 ACTIVE(C) = .TRUE.
+              ELSE
+                 DPN(C) = 0
+                 !ACTIVE(C) = .FALSE.
+              END IF
+              
+              P_NEW(P)%U = P_NEW(P)%U + (-DPN(C))*DT/P_NEW(P)%M*NX!/(1+EN)
+              P_NEW(P)%V = P_NEW(P)%V + (-DPN(C))*DT/P_NEW(P)%M*NY!/(1+EN)
+              
+              P_NEW(Q)%U = P_NEW(Q)%U + (+DPN(C))*DT/P_NEW(Q)%M*NX!/(1+EN)
+              P_NEW(Q)%V = P_NEW(Q)%V + (+DPN(C))*DT/P_NEW(Q)%M*NY!/(1+EN)
+              
+              PN(C)=PN(C)+DPN(C)
+
+              !P_FREE(P)%X = P_OLD(P)%X + DT*0.5*(P_NEW(P)%U + P_OLD(P)%U )
+              !P_FREE(P)%Y = P_OLD(P)%Y + DT*0.5*(P_NEW(P)%V + P_OLD(P)%V )
+              
+              P_FREE(P)%X = P_OLD(P)%X + DT*P_NEW(P)%U 
+              P_FREE(P)%Y = P_OLD(P)%Y + DT*P_NEW(P)%V
+
+              P_FREE(Q)%X = P_OLD(Q)%X + DT*P_NEW(Q)%U 
+              P_FREE(Q)%Y = P_OLD(Q)%Y + DT*P_NEW(Q)%V 
+
+              
+           ELSE   ! S > 0
+              PN(C) = 0
+           END IF
+           !PRINT*,">",S,DT*DPN(1),P_NEW(P)%V,P_OLD(P)%V
+           !PRINT*,">",S,DT*DPN(1),P_NEW(P)%V,P_OLD(P)%V
+        END DO
         
-        res= maxval(abs(dpn(1:nb_contacts)))
-        if (maxval(abs(dt*dpn(1:nb_contacts))).lt.1e-16) exit ! Condition to exit nlgs
-        !p_new(1)%v=0.30991902E+01
-     end do
+        RES= MAXVAL(ABS(DPN(1:NB_CONTACTS)))
+        IF (MAXVAL(ABS(DT*DPN(1:NB_CONTACTS))).LT.1E-16) EXIT ! CONDITION TO EXIT NLGS
+        !P_NEW(1)%V=0.30991902E+01
+     END DO
      
      
-     do p=1,np
+     DO P=1,NP
 
-        !> comme dans le papier de Serge et Mikael
-        p_new(p)%x = p_demi(p)%x + 0.5*dt*p_new(p)%u
-        p_new(p)%y = p_demi(p)%y + 0.5*dt*p_new(p)%v 
+        !> COMME DANS LE PAPIER DE SERGE ET MIKAEL
+        P_NEW(P)%X = P_DEMI(P)%X + 0.5*DT*P_NEW(P)%U
+        P_NEW(P)%Y = P_DEMI(P)%Y + 0.5*DT*P_NEW(P)%V 
 
-        !> je decentre en temp pour le choc
-!!$        if (nb_contacts==0) then
-!!$           p_new(p)%x = p_old(p)%x + dt*0.5*(p_new(p)%u + p_old(p)%u )
-!!$           p_new(p)%y = p_old(p)%y + dt*0.5*(p_new(p)%v + p_old(p)%v )
-!!$        else
-!!$           p_new(p)%x = p_old(p)%x + dt*1.0*(p_new(p)%u )
-!!$           p_new(p)%y = p_old(p)%y + dt*1.0*(p_new(p)%v)
-!!$        end if
+        !> JE DECENTRE EN TEMP POUR LE CHOC
+!!$        IF (NB_CONTACTS==0) THEN
+!!$           P_NEW(P)%X = P_OLD(P)%X + DT*0.5*(P_NEW(P)%U + P_OLD(P)%U )
+!!$           P_NEW(P)%Y = P_OLD(P)%Y + DT*0.5*(P_NEW(P)%V + P_OLD(P)%V )
+!!$        ELSE
+!!$           P_NEW(P)%X = P_OLD(P)%X + DT*1.0*(P_NEW(P)%U )
+!!$           P_NEW(P)%Y = P_OLD(P)%Y + DT*1.0*(P_NEW(P)%V)
+!!$        END IF
 
-        !> le theta-schema
-!!$        p_new(p)%x = p_old(p)%x + dt*0.5*(p_new(p)%u + p_old(p)%u )
-!!$        p_new(p)%y = p_old(p)%y + dt*0.5*(p_new(p)%v + p_old(p)%v )
+        !> LE THETA-SCHEMA
+!!$        P_NEW(P)%X = P_OLD(P)%X + DT*0.5*(P_NEW(P)%U + P_OLD(P)%U )
+!!$        P_NEW(P)%Y = P_OLD(P)%Y + DT*0.5*(P_NEW(P)%V + P_OLD(P)%V )
         
-        call particle_copy(p_old(p),p_new(p))
-     end do
-     !<> calcul de dmax sur les connections de type active
+        CALL PARTICLE_COPY(P_OLD(P),P_NEW(P))
+     END DO
+     !<> CALCUL DE DMAX SUR LES CONNECTIONS DE TYPE ACTIVE
      
      
-     !print'(i5,1x,i5,1x,10(e15.8,1x))',it,nl_it,tc,p_new(1)%v,ex(2),p_new(1)%y,ex(1)
-     !print'(i5,1x,i5,1x,10(e15.8,1x))',it,nl_it,p_new(1)%u,p_new(2)%u
+     !PRINT'(I5,1X,I5,1X,10(E15.8,1X))',IT,NL_IT,TC,P_NEW(1)%V,EX(2),P_NEW(1)%Y,EX(1)
+     !PRINT'(I5,1X,I5,1X,10(E15.8,1X))',IT,NL_IT,P_NEW(1)%U,P_NEW(2)%U
      
      
      
-     if  (test_case==free_falling_particle) then
+     IF  (TEST_CASE==FREE_FALLING_PARTICLE) THEN
         
-        ex = exact_FreeFallingParticle(tc)
-        print'(i5,1x,i2,1x,10(e15.8,1x))',it,nb_contacts,p_new(1)%y,ex(1),p_new(1)%v,ex(2)
-        write(20,'(10(e15.8,1x))')tc,p_new(1)%y,ex(1),abs(p_new(1)%y-ex(1))
-        if (tc>=0.34*10) exit
+        EX = EXACT_FREEFALLINGPARTICLE(TC)
+        PRINT'(I5,1X,I2,1X,10(E15.8,1X))',IT,NB_CONTACTS,P_NEW(1)%Y,EX(1),P_NEW(1)%V,EX(2)
+        WRITE(20,'(10(E15.8,1X))')TC,P_NEW(1)%Y,EX(1),ABS(P_NEW(1)%Y-EX(1))
+        IF (TC>=0.34*10) EXIT
         
-     else if  (test_case==dam_break) then
+     ELSE IF  (TEST_CASE==DAM_BREAK) THEN
         
-        print'(i5,1x,i2,1x,10(e15.8,1x))',it,nb_contacts
-        if (tc>=5.) exit
+        PRINT'(I5,1X,I2,1X,10(E15.8,1X))',IT,NB_CONTACTS
+        IF (TC>=5.) EXIT
         
-     end if
+     END IF
         
      
      
      
-     if (mod(it,10)==0) then
-        !pn = dt*pn
-        call export_reaction(p_new,np,list_of_contacts,nb_contacts,pn)
-        call export('out.dat',p_new,np-4,it)
-     end if
+     IF (MOD(IT,10)==0) THEN
+        !PN = DT*PN
+        CALL EXPORT_REACTION(P_NEW,NP,LIST_OF_CONTACTS,NB_CONTACTS,PN)
+        CALL EXPORT('OUT.DAT',P_NEW,NP-4,IT)
+     END IF
      
-  end do
+  END DO
 
 ! ==================================== CONTAINS ======================================= !
   
-contains
+CONTAINS
   
 ! =================================================================================== ! 
-  subroutine set_boundary_wall(pcl,np)
-    integer :: np
-    type(particle),dimension(:),allocatable:: pcl
+  SUBROUTINE SET_BOUNDARY_WALL(PCL,NP)
+    INTEGER :: NP
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: PCL
     
     ! ========================================== !
-    ! print*,"2",np ====== > "ICI np = 1"
+    ! PRINT*,"2",NP ====== > "ICI NP = 1"
     ! ========================================== !
    
     
-    !> four active set wall => particle with huge radius
-    pcl(np+1)%x = xmin(1)-1e8
-    pcl(np+1)%y = (xmin(2)+xmax(2))*0.5
-    pcl(np+1)%u = 0
-    pcl(np+1)%v = 0
-    pcl(np+1)%r = 1e8
-    pcl(np+1)%rho = 1e12
-    pcl(np+1)%fx = 0.0
-    pcl(np+1)%fy = 0.0
+    !> FOUR ACTIVE SET WALL => PARTICLE WITH HUGE RADIUS
+    PCL(NP+1)%X = XMIN(1)-1E8
+    PCL(NP+1)%Y = (XMIN(2)+XMAX(2))*0.5
+    PCL(NP+1)%U = 0
+    PCL(NP+1)%V = 0
+    PCL(NP+1)%R = 1E8
+    PCL(NP+1)%RHO = 1E12
+    PCL(NP+1)%FX = 0.0
+    PCL(NP+1)%FY = 0.0
 
     
-    pcl(np+2)%x = (xmin(1)+xmax(1))*0.5
-    pcl(np+2)%y = xmin(2)-1e8
-    pcl(np+2)%u = 0
-    pcl(np+2)%v = 0
-    pcl(np+2)%r = 1e8
-    pcl(np+2)%rho = 1e12
-    pcl(np+2)%m = 1e12
-    pcl(np+2)%fx = 0.0
-    pcl(np+2)%fy = 0.0
+    PCL(NP+2)%X = (XMIN(1)+XMAX(1))*0.5
+    PCL(NP+2)%Y = XMIN(2)-1E8
+    PCL(NP+2)%U = 0
+    PCL(NP+2)%V = 0
+    PCL(NP+2)%R = 1E8
+    PCL(NP+2)%RHO = 1E12
+    PCL(NP+2)%M = 1E12
+    PCL(NP+2)%FX = 0.0
+    PCL(NP+2)%FY = 0.0
     
-    pcl(np+3)%x = xmax(1)+1e8
-    pcl(np+3)%y = (xmin(2)+xmax(2))*0.5
-    pcl(np+3)%u = 0
-    pcl(np+3)%v = 0
-    pcl(np+3)%r = 1e8
-    pcl(np+3)%rho = 1e12
-    pcl(np+3)%fx = 0.0
-    pcl(np+3)%fy = 0.0
+    PCL(NP+3)%X = XMAX(1)+1E8
+    PCL(NP+3)%Y = (XMIN(2)+XMAX(2))*0.5
+    PCL(NP+3)%U = 0
+    PCL(NP+3)%V = 0
+    PCL(NP+3)%R = 1E8
+    PCL(NP+3)%RHO = 1E12
+    PCL(NP+3)%FX = 0.0
+    PCL(NP+3)%FY = 0.0
     
-    pcl(np+4)%x = (xmin(1)+xmax(1))*0.5
-    pcl(np+4)%y = xmax(2)+1e8
-    pcl(np+4)%u = 0
-    pcl(np+4)%v = 0
-    pcl(np+4)%r = 1e8
-    pcl(np+4)%rho = 1e12
-    pcl(np+4)%fx = 0.0
-    pcl(np+4)%fy = 0.0
+    PCL(NP+4)%X = (XMIN(1)+XMAX(1))*0.5
+    PCL(NP+4)%Y = XMAX(2)+1E8
+    PCL(NP+4)%U = 0
+    PCL(NP+4)%V = 0
+    PCL(NP+4)%R = 1E8
+    PCL(NP+4)%RHO = 1E12
+    PCL(NP+4)%FX = 0.0
+    PCL(NP+4)%FY = 0.0
     !>
     
-  end subroutine set_boundary_wall
+  END SUBROUTINE SET_BOUNDARY_WALL
 ! =================================================================================== !  
 
 ! =================================================================================== !  
-  subroutine Initialize_StackedParticles(pcl,np)
-    implicit none
-    integer :: np
-    type(particle),dimension(:),allocatable:: pcl
+  SUBROUTINE INITIALIZE_STACKEDPARTICLES(PCL,NP)
+    IMPLICIT NONE
+    INTEGER :: NP
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: PCL
 
-    integer :: n
-    integer :: i,j,p
+    INTEGER :: N
+    INTEGER :: I,J,P
 
-    real(kind=8) :: xc,yc,u,v,r1,r2,nx,ny
-    real(kind=8) :: radius
+    REAL(KIND=8) :: XC,YC,U,V,R1,R2,NX,NY
+    REAL(KIND=8) :: RADIUS
     
-    np = 3
-    allocate( pcl (np+4) )
+    NP = 3
+    ALLOCATE( PCL (NP+4) )
     
-    !> 1 second of simulation
-    radius = 1e-2
-    xc = 0.5
-    yc = 0.5
-    u = 1.00
-    v = 0.00
-    r1 = radius
-    r2 = radius
+    !> 1 SECOND OF SIMULATION
+    RADIUS = 1E-2
+    XC = 0.5
+    YC = 0.5
+    U = 1.00
+    V = 0.00
+    R1 = RADIUS
+    R2 = RADIUS
 
-    nx = u/sqrt(u**2+v**2)
-    ny = v/sqrt(u**2+v**2)
+    NX = U/SQRT(U**2+V**2)
+    NY = V/SQRT(U**2+V**2)
     
-    !> particule de gauche 
-    pcl(1)%x = xc-nx*0.5
-    pcl(1)%y = yc-ny*0.5
-    pcl(1)%u = u
-    pcl(1)%v = v
-    pcl(1)%r = radius
-    pcl(1)%rho = 2600
-    pcl(1)%fx = 10.0*nx
-    pcl(1)%fy = 10.0*ny
+    !> PARTICULE DE GAUCHE 
+    PCL(1)%X = XC-NX*0.5
+    PCL(1)%Y = YC-NY*0.5
+    PCL(1)%U = U
+    PCL(1)%V = V
+    PCL(1)%R = RADIUS
+    PCL(1)%RHO = 2600
+    PCL(1)%FX = 10.0*NX
+    PCL(1)%FY = 10.0*NY
     
-    !> particule de droite
-    pcl(2)%x = xc+nx*0.5
-    pcl(2)%y = yc+ny*0.5
-    pcl(2)%u = -u
-    pcl(2)%v = -v
-    pcl(2)%r = radius
-    pcl(2)%rho = 2600
-    pcl(2)%fx = -10.0*nx
-    pcl(2)%fy = -10.0*ny
+    !> PARTICULE DE DROITE
+    PCL(2)%X = XC+NX*0.5
+    PCL(2)%Y = YC+NY*0.5
+    PCL(2)%U = -U
+    PCL(2)%V = -V
+    PCL(2)%R = RADIUS
+    PCL(2)%RHO = 2600
+    PCL(2)%FX = -10.0*NX
+    PCL(2)%FY = -10.0*NY
     
 
     
     
-    do p=1,(np-2)
-       pcl(2+p)%x = xc - (p-1)*2*radius*nx
-       pcl(2+p)%y = yc - (p-1)*2*radius*ny
-       pcl(2+p)%u = 0
-       pcl(2+p)%v = 0
-       pcl(2+p)%r = radius
-       pcl(2+p)%rho = 2600
-       pcl(2+p)%fx = 0.0
-       pcl(2+p)%fy = 0.0
-    end do
+    DO P=1,(NP-2)
+       PCL(2+P)%X = XC - (P-1)*2*RADIUS*NX
+       PCL(2+P)%Y = YC - (P-1)*2*RADIUS*NY
+       PCL(2+P)%U = 0
+       PCL(2+P)%V = 0
+       PCL(2+P)%R = RADIUS
+       PCL(2+P)%RHO = 2600
+       PCL(2+P)%FX = 0.0
+       PCL(2+P)%FY = 0.0
+    END DO
     
     
-    call set_boundary_wall(pcl,np)
+    CALL SET_BOUNDARY_WALL(PCL,NP)
     
-    np = np+4
-    pi = acos(-1.0)
-    do p=1,np-4
-       pcl(p)%m= pcl(p)%rho * pi*pcl(p)%r**2
-       pcl(p)%fx = pcl(p)%fx*pcl(p)%m
-       pcl(p)%fy = pcl(p)%fy*pcl(p)%m
-    end do
+    NP = NP+4
+    PI = ACOS(-1.0)
+    DO P=1,NP-4
+       PCL(P)%M= PCL(P)%RHO * PI*PCL(P)%R**2
+       PCL(P)%FX = PCL(P)%FX*PCL(P)%M
+       PCL(P)%FY = PCL(P)%FY*PCL(P)%M
+    END DO
     
-  end subroutine Initialize_StackedParticles
+  END SUBROUTINE INITIALIZE_STACKEDPARTICLES
 ! =================================================================================== !  
 
 ! =================================================================================== !  
-  subroutine Initialize_FreeFallingParticle(pcl,np)
-    implicit none
-    integer :: np
-    type(particle),dimension(:),allocatable:: pcl
+  SUBROUTINE INITIALIZE_FREEFALLINGPARTICLE(PCL,NP)
+    IMPLICIT NONE
+    INTEGER :: NP
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: PCL
 
-    integer :: n
-    integer :: i,j,p
+    INTEGER :: N
+    INTEGER :: I,J,P
 
-    real(kind=8) :: xc,yc,u,v,r1,r2,nx,ny
-    real(kind=8) :: radius,tc,vc
+    REAL(KIND=8) :: XC,YC,U,V,R1,R2,NX,NY
+    REAL(KIND=8) :: RADIUS,TC,VC
     
-    np = 1
-    allocate( pcl (np+4) )
+    NP = 1
+    ALLOCATE( PCL (NP+4) )
     
     ! ========================================== !
-    ! print*,"1",np ====== > "ICI np = 1"
+    ! PRINT*,"1",NP ====== > "ICI NP = 1"
     ! ========================================== !
     
-    !> 1 second of simulation
-    radius = 1e-2
-    xc = 0.5
-    yc = 0.5
-    pcl(1)%x = xc
-    pcl(1)%y = yc
-    pcl(1)%u = 0
-    pcl(1)%v = 0
-    pcl(1)%r = radius
-    pcl(1)%rho = 2600
-    pcl(1)%fx = 0.0
-    pcl(1)%fy = -10.0
+    !> 1 SECOND OF SIMULATION
+    RADIUS = 1E-2
+    XC = 0.5
+    YC = 0.5
+    PCL(1)%X = XC
+    PCL(1)%Y = YC
+    PCL(1)%U = 0
+    PCL(1)%V = 0
+    PCL(1)%R = RADIUS
+    PCL(1)%RHO = 2600
+    PCL(1)%FX = 0.0
+    PCL(1)%FY = -10.0
 
-    !print*,pcl(1)%x
+    !PRINT*,PCL(1)%X
     
-    call set_boundary_wall(pcl,np)
+    CALL SET_BOUNDARY_WALL(PCL,NP)
     
-    np = np+4
+    NP = NP+4
     
     ! ========================================== !
-    ! print*,"3",np ====== > "ICI np = 5"
+    ! PRINT*,"3",NP ====== > "ICI NP = 5"
     ! ========================================== !
    
-    pi = acos(-1.0)
-    do p=1,np-4
-       pcl(p)%m= pcl(p)%rho * pi*pcl(p)%r**2
-       pcl(p)%fx = pcl(p)%fx*pcl(p)%m
-       pcl(p)%fy = pcl(p)%fy*pcl(p)%m
-    end do
+    PI = ACOS(-1.0)
+    DO P=1,NP-4
+       PCL(P)%M= PCL(P)%RHO * PI*PCL(P)%R**2
+       PCL(P)%FX = PCL(P)%FX*PCL(P)%M
+       PCL(P)%FY = PCL(P)%FY*PCL(P)%M
+    END DO
     
-  end subroutine Initialize_FreeFallingParticle
+  END SUBROUTINE INITIALIZE_FREEFALLINGPARTICLE
 ! =================================================================================== !  
 
 ! =================================================================================== !  
-  subroutine Initialize_DAM(pcl,np)
-    implicit none
-    integer :: np
-    type(particle),dimension(:),allocatable:: pcl
+  SUBROUTINE INITIALIZE_DAM(PCL,NP)
+    IMPLICIT NONE
+    INTEGER :: NP
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: PCL
 
-    integer :: n
-    integer :: i,j,p
+    INTEGER :: N
+    INTEGER :: I,J,P
 
-    real(kind=8) :: xc,yc,u,v,r1,r2,nx,ny
-    real(kind=8) :: radius,tc,vc
+    REAL(KIND=8) :: XC,YC,U,V,R1,R2,NX,NY
+    REAL(KIND=8) :: RADIUS,TC,VC
     
-    n=20
+    N=20
     
-    np = n*n    
-    allocate( pcl (np+4) )
+    NP = N*N    
+    ALLOCATE( PCL (NP+4) )
     
-    !> distribution des particules 
-    !> sur le cote gauche
-    radius = (xmax(1)/4)/n*0.5
-    p=0
-    do i=1,n
-       do j=1,n
-          p=p+1
-          p_old(p)%x= (i-0.5)*(2*radius)
-          p_old(p)%y= (j-0.5)*(2*radius)
-          p_old(p)%u= 0.0
-          p_old(p)%v= 0.0
-          call random_number(s)
+    !> DISTRIBUTION DES PARTICULES 
+    !> SUR LE COTE GAUCHE
+    RADIUS = (XMAX(1)/4)/N*0.5
+    P=0
+    DO I=1,N
+       DO J=1,N
+          P=P+1
+          P_OLD(P)%X= (I-0.5)*(2*RADIUS)
+          P_OLD(P)%Y= (J-0.5)*(2*RADIUS)
+          P_OLD(P)%U= 0.0
+          P_OLD(P)%V= 0.0
+          CALL RANDOM_NUMBER(S)
 
-          p_old(p)%r= radius*(1-s*0.5)
-          p_old(p)%rho = 2600.0
-          p_old(p)%fx=-0.0
-          p_old(p)%fy=-10.
-       end do
-    end do
+          P_OLD(P)%R= RADIUS*(1-S*0.5)
+          P_OLD(P)%RHO = 2600.0
+          P_OLD(P)%FX=-0.0
+          P_OLD(P)%FY=-10.
+       END DO
+    END DO
 
     
-    call set_boundary_wall(pcl,np)
+    CALL SET_BOUNDARY_WALL(PCL,NP)
     
-    np = np+4
-    pi = acos(-1.0)
-    do p=1,np
-       pcl(p)%m= pcl(p)%rho * pi*pcl(p)%r**2
-       pcl(p)%fx = pcl(p)%fx*pcl(p)%m
-       pcl(p)%fy = pcl(p)%fy*pcl(p)%m
-    end do
+    NP = NP+4
+    PI = ACOS(-1.0)
+    DO P=1,NP
+       PCL(P)%M= PCL(P)%RHO * PI*PCL(P)%R**2
+       PCL(P)%FX = PCL(P)%FX*PCL(P)%M
+       PCL(P)%FY = PCL(P)%FY*PCL(P)%M
+    END DO
     
     
-  end subroutine Initialize_DAM
+  END SUBROUTINE INITIALIZE_DAM
 ! =================================================================================== !  
 
 ! =================================================================================== !  
-  function exact_FreeFallingParticle(t)
-    implicit none
-    real(kind=8) exact_FreeFallingParticle(2)
-    real(kind=8) :: t,r,yc,h0,tn,g,e,y,v,tt,t0,v0,hn
-    integer :: nb,n
+  FUNCTION EXACT_FREEFALLINGPARTICLE(T)
+    IMPLICIT NONE
+    REAL(KIND=8) EXACT_FREEFALLINGPARTICLE(2)
+    REAL(KIND=8) :: T,R,YC,H0,TN,G,E,Y,V,TT,T0,V0,HN
+    INTEGER :: NB,N
 
     
     
-    r=1e-2
-    g=10
-    yc=0.5
-    e = en
-    h0 = yc - r
-    t0 = -sqrt(2*g*h0)/g 
+    R=1E-2
+    G=10
+    YC=0.5
+    E = EN
+    H0 = YC - R
+    T0 = -SQRT(2*G*H0)/G 
     
-    tt = t0
-    do n=1,100
-       tt = tt + sqrt(8*h0/g)*e**(n-1)
-       if (tt>=t) exit
-    end do
-    tt = tt - sqrt(8*h0/g)*e**(n-1) 
+    TT = T0
+    DO N=1,100
+       TT = TT + SQRT(8*H0/G)*E**(N-1)
+       IF (TT>=T) EXIT
+    END DO
+    TT = TT - SQRT(8*H0/G)*E**(N-1) 
     
-    hn = h0*e**(2*(n-1))
-    v0 = sqrt(2*g*hn)
+    HN = H0*E**(2*(N-1))
+    V0 = SQRT(2*G*HN)
     
-    tt = t-tt
-    y = tt*(-0.5*g*tt+v0) + r
-    v = -1.0*g*tt+v0
+    TT = T-TT
+    Y = TT*(-0.5*G*TT+V0) + R
+    V = -1.0*G*TT+V0
 
-!!$    if (n==2) then
-!!$       print'(2(e15.8,1x))',sqrt(2*g*hn)/sqrt(2*g*h0)
-!!$    end if
+!!$    IF (N==2) THEN
+!!$       PRINT'(2(E15.8,1X))',SQRT(2*G*HN)/SQRT(2*G*H0)
+!!$    END IF
 
     
-    exact_FreeFallingParticle(1) = y
-    exact_FreeFallingParticle(2) = v
+    EXACT_FREEFALLINGPARTICLE(1) = Y
+    EXACT_FREEFALLINGPARTICLE(2) = V
     
-  end function exact_FreeFallingParticle
+  END FUNCTION EXACT_FREEFALLINGPARTICLE
 ! =================================================================================== !  
   
   
 
 
-end program main
+END PROGRAM MAIN
