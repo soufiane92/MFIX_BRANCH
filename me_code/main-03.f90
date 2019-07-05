@@ -53,9 +53,9 @@ PROGRAM MAIN
   !PRINT*,XMIN,XMAX
   !STOP
   
-  !TEST_CASE = FREE_FALLING_PARTICLE
+  TEST_CASE = FREE_FALLING_PARTICLE
   !TEST_CASE = PARTICLE_COLLISION
-  TEST_CASE = DAM_BREAK
+  !TEST_CASE = DAM_BREAK
 
   !PRINT*,TEST_CASE
   !STOP
@@ -153,7 +153,8 @@ PROGRAM MAIN
         P_FREE(P)%V = P_OLD(P)%V + DT*0.5*(P_OLD(P)%FY+P_NEW(P)%FY)/P_NEW(P)%M
         P_FREE(P)%X = P_OLD(P)%X + DT*0.5*(P_FREE(P)%U+P_OLD(P)%U)
         P_FREE(P)%Y = P_OLD(P)%Y + DT*0.5*(P_FREE(P)%V+P_OLD(P)%V)
-        
+
+
         !> THETA-SCHEMA 1.0
         !P_FREE(P)%U = P_OLD(P)%U + DT*1.0*(P_NEW(P)%FX)/P_NEW(P)%M
         !P_FREE(P)%V = P_OLD(P)%V + DT*1.0*(P_NEW(P)%FY)/P_NEW(P)%M
@@ -187,6 +188,7 @@ PROGRAM MAIN
            
            NX = DX/SQRT(DX**2+DY**2)
            NY = DY/SQRT(DX**2+DY**2)
+                      
 
            ! ATTENTION L'ESTIMATION DISTANCE N'EST PAS
            ! SUR UN CRANK-NICHOLSON
