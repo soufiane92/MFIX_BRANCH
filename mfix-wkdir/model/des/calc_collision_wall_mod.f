@@ -292,7 +292,7 @@
 
 ! Add the collision force to the total forces acting on the particle.
             FC(LL,:) = FC(LL,:) + FNORM(:) + FTAN(:)
-
+	    
 ! Add the torque force to the toal torque acting on the particle.
             TOW(LL,:) = TOW(LL,:) + DISTMOD*DES_CROSSPRDCT(NORMAL,FTAN)
 

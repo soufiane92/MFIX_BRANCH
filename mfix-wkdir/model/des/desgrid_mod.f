@@ -1174,6 +1174,12 @@
       include 'functions.inc'
 
     end subroutine desgrid_neigh_build
+
+
+
+
+
+
  
 ! ==================================================================== !
 ! ====================== DESGRID NEIGH BUILD ME ====================== !
@@ -1321,7 +1327,7 @@
                   cycle
                endif
 
-               lsearch_rad = factor_RLM*(des_radius_new_me(lcurpar)+des_radius_new_me(lneigh))
+               lsearch_rad = factor_RLM*(des_radius_me(lcurpar)+des_radius_me(lneigh))
                ldistvec(1) = lcurpar_pos(1)-des_pos_new_me(lneigh,1)
                ldistvec(2) = lcurpar_pos(2)-des_pos_new_me(lneigh,2)
                ldistvec(3) = lcurpar_pos(3)-des_pos_new_me(lneigh,3)
@@ -1391,6 +1397,8 @@
 
 !$omp end parallel
 
+    PRINT*,"DESGRID NEIGH ME DONE"
+
     contains
 
       include 'functions.inc'
@@ -1400,6 +1408,27 @@
 ! ==================================================================== !
 ! ==================================================================== !
 ! ==================================================================== !
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 !------------------------------------------------------------------------
 ! subroutine       : des_dbggrid

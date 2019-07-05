@@ -138,6 +138,17 @@
       RETURN
       END SUBROUTINE NSQUARE
 
+
+
+
+
+
+
+
+
+
+
+
 ! =========================================================================== !
 ! =================================== NSQUARE ME ============================ !
 ! =========================================================================== !
@@ -187,7 +198,7 @@
             IF(PNPC .LE. 0) EXIT
             IF(IS_NONEXISTENT(LL)) CYCLE
 
-            R_LM = DES_RADIUS_NEW_ME(L) + DES_RADIUS_NEW_ME(LL)
+            R_LM = DES_RADIUS_ME(L) + DES_RADIUS_ME(LL)
             R_LM = FACTOR_RLM*R_LM
 
 
@@ -263,6 +274,8 @@
 
          PC = PC + 1
       ENDDO   ! end loop over L
+
+      !PRINT*,"NSQUARE ME DONE"
 
       RETURN
       END SUBROUTINE NSQUARE_ME

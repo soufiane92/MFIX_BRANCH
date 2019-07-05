@@ -86,6 +86,17 @@ LOGICAL :: found
       RETURN
       END SUBROUTINE NEIGHBOUR
 
+
+
+
+
+
+
+
+
+
+
+
 ! =========================================================================== !
 ! =================================== NEIGHBOUR ME ========================== !
 ! =========================================================================== !
@@ -145,7 +156,7 @@ LOGICAL :: found
 
       DO_NSEARCH = .FALSE.
 
-      PRINT*,"NEIGHBOUR ME DONE"
+      !PRINT*,"NEIGHBOUR ME DONE"
 
       RETURN
       END SUBROUTINE NEIGHBOUR_ME

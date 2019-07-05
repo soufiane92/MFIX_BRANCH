@@ -112,11 +112,31 @@
          ORIENTATION(:,3) = INIT_ORIENTATION(3)
       ENDIF
 
+! ==================================================================== !
+! ============================== ME ================================== !
+! ==================================================================== !
+
+      DES_RADIUS_ME(LB:UB) = ZERO
+      RO_ME(LB:UB) = ZERO
+      PMASS_ME(LB:UB) = HUGE(0.0)
+      
+      DES_POS_NEW_ME(LB:UB,:) = ZERO
+      DES_VEL_NEW_ME(LB:UB,:) = ZERO
+      PPOS_ME(LB:UB,:) = ZERO
+
+! ==================================================================== !
+! ==================================================================== !
+! ==================================================================== !
+
 ! Particle state flag
       DO II = LB, UB
          call set_nonexistent(II)
       ENDDO
       NEIGHBOR_INDEX(:) = 0
+
+! ============================== ME ================================== !
+      NEIGHBOR_INDEX_ME(:) = 0
+! ==================================================================== !
 
 ! DES grid bin information
       DG_PIJK(LB:UB) = -1
@@ -129,6 +149,13 @@
 ! Translation and rotational forces
       FC(LB:UB,:) = ZERO
       TOW(LB:UB,:) = ZERO
+
+
+! ============================== ME ================================== !
+      FC_OLD_ME(LB:UB,:) = ZERO
+      FC_NEW_ME(LB:UB,:) = ZERO
+! ==================================================================== !
+
 
 ! Collision data
       WALL_COLLISION_FACET_ID(:,LB:UB) = -1
@@ -164,6 +191,13 @@
          OMEGA_OLD(LB:UB,:) = ZERO
          ROT_ACC_OLD(LB:UB,:) = ZERO
       ENDIF
+
+! ============================== ME ================================== !
+
+         DES_POS_OLD_ME(LB:UB,:) = ZERO
+         DES_VEL_OLD_ME(LB:UB,:) = ZERO
+
+! ==================================================================== !
 
 ! Energy equation variables.
       IF(ENERGY_EQ)THEN

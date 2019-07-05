@@ -75,7 +75,7 @@
   MEW =   0.0                  ! particle-particle
   MEW_W = 0.0                  ! particle-wall
 
-  DES_NEIGHBOR_SEARCH =  4     ! Grid based neighbor search
+  DES_NEIGHBOR_SEARCH =  1     ! Grid based neighbor search
   NEIGHBOR_SEARCH_N   = 99     ! Steps between neighbor search
 
   DESGRIDSEARCH_IMAX = 1
@@ -161,6 +161,18 @@
 
 #_______________________________________________________________________
 # DMP SETUP
+
+  write_vtk_files = .True.
+  time_dependent_filename = .True.
+  vtk_data(1) = 'P'
+  
+  vtk_filebase(1) = 'particles'
+  vtk_dt(1) = 0.01
+  vtk_nxs(1) = 0
+  vtk_nys(1) = 0
+  vtk_nzs(1) = 0
+  vtk_part_diameter(1) = .True.
+  vtk_part_vel(1) = .True.  
 
   NODESI = 1
   NODESJ = 1

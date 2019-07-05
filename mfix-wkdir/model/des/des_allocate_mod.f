@@ -146,29 +146,20 @@ CONTAINS
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !
 
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !
-      Allocate(  DES_RADIUS_OLD_ME (MAX_PIP) )
-      Allocate(  DES_RADIUS_NEW_ME (MAX_PIP) )
-      Allocate(  DES_RADIUS_FREE_ME (MAX_PIP) )
-      Allocate(  DES_RADIUS_DEMI_ME (MAX_PIP) )
+      Allocate(  DES_RADIUS_ME (MAX_PIP) )
 
-      Allocate(  RO_OLD_ME (MAX_PIP) )
-      Allocate(  RO_NEW_ME (MAX_PIP) )
-      Allocate(  RO_FREE_ME (MAX_PIP) )
-      Allocate(  RO_DEMI_ME (MAX_PIP) )
+      Allocate(  RO_ME (MAX_PIP) )
 
-      Allocate(  PMASS_OLD_ME (MAX_PIP) )
-      Allocate(  PMASS_NEW_ME (MAX_PIP) )
-      Allocate(  PMASS_FREE_ME (MAX_PIP) )
-      Allocate(  PMASS_DEMI_ME (MAX_PIP) )
+      Allocate(  PMASS_ME (MAX_PIP) )
 
       Allocate(  FC_OLD_ME (MAX_PIP,DIMN) )
       Allocate(  FC_NEW_ME (MAX_PIP,DIMN) )
-      Allocate(  FC_FREE_ME (MAX_PIP,DIMN) )
-      Allocate(  FC_DEMI_ME (MAX_PIP,DIMN) )
+      
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !
 
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !
       Allocate(  PPOS_ME (MAX_PIP,DIMN) )
+      
       Allocate(  NEIGHBOR_INDEX_ME (MAX_PIP) )
       Allocate(  NEIGHBOR_INDEX_OLD_ME (MAX_PIP) )
       Allocate(  NEIGHBORS_ME (MAX_PIP) )

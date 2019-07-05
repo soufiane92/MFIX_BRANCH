@@ -599,17 +599,14 @@
       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: DES_VEL_DEMI_ME
 
 
-      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: DES_RADIUS_OLD_ME, DES_RADIUS_NEW_ME
-      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: DES_RADIUS_FREE_ME, DES_RADIUS_DEMI_ME
-      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: RO_OLD_ME, RO_NEW_ME
-      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: RO_FREE_ME, RO_DEMI_ME
+      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: DES_RADIUS_ME
       
-      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: PMASS_OLD_ME, PMASS_NEW_ME
-      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: PMASS_FREE_ME, PMASS_DEMI_ME
-
+      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: RO_ME
+      
+      DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: PMASS_ME
+      
       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: FC_OLD_ME, FC_NEW_ME
-      DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: FC_FREE_ME, FC_DEMI_ME
-
+      
 
       INTEGER, DIMENSION(:), ALLOCATABLE :: NEIGHBOR_INDEX_ME
       INTEGER, DIMENSION(:), ALLOCATABLE :: NEIGHBOR_INDEX_OLD_ME
@@ -761,30 +758,65 @@ END SUBROUTINE des_swapvalues_l
 ! ==================================================================== !
 ! ========================= SUBROUTINE ME ============================ !
 ! ==================================================================== !
+
+! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !   
+
+    SUBROUTINE PARTICLE_COPY_ME_MFIX
+         
+       IMPLICIT NONE
+
+       DES_POS_NEW_ME(:,1:3) = DES_POS_NEW(:,1:3)
+              
+       DES_VEL_NEW_ME(:,1:3) = DES_VEL_NEW(:,1:3)
+              
+       PMASS_ME(:) = PMASS(:)
+       RO_ME(:) = RO_Sol(:)
+       DES_RADIUS_ME(:) = DES_RADIUS(:)
+       
+       FC_OLD_ME(:,1) = GRAV(1) * PMASS_ME(:)
+       FC_OLD_ME(:,2) = GRAV(2) * PMASS_ME(:)
+       FC_OLD_ME(:,3) = GRAV(3) * PMASS_ME(:)
+       
+       FC_NEW_ME(:,1) = GRAV(1) * PMASS_ME(:)
+       FC_NEW_ME(:,2) = GRAV(2) * PMASS_ME(:)
+       FC_NEW_ME(:,3) = GRAV(3) * PMASS_ME(:)
+       
+       !PRINT*,"PARTICLE COPY MFIX ME DONE"
+      
+     END SUBROUTINE PARTICLE_COPY_ME_MFIX
+
+! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !
+
+! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !   
+
+    SUBROUTINE PARTICLE_COPY_MFIX_ME
+         
+       IMPLICIT NONE
+
+       DES_POS_NEW(:,1:3) = DES_POS_NEW_ME(:,1:3)
+                     
+       DES_VEL_NEW(:,1:3) = DES_VEL_NEW_ME(:,1:3)
+              
+       PMASS(:) = PMASS_ME(:)
+       RO_Sol(:) = RO_ME(:)
+       DES_RADIUS(:) = DES_RADIUS_ME(:)
+       
+       FC(:,1:3) = FC_OLD_ME(:,1:3)
+       
+       !PRINT*,"PARTICLE COPY ME MFIX DONE"
+      
+     END SUBROUTINE PARTICLE_COPY_MFIX_ME
+
+! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !     
     
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !   
     SUBROUTINE PARTICLE_COPY_OLD_NEW_ME
          
        IMPLICIT NONE
 
-       DES_POS_OLD_ME(:,1) = DES_POS_NEW_ME(:,1)
-       DES_POS_OLD_ME(:,2) = DES_POS_NEW_ME(:,2)
-       DES_POS_OLD_ME(:,3) = DES_POS_NEW_ME(:,3)
-
-       
-       DES_VEL_OLD_ME(:,1) = DES_VEL_NEW_ME(:,1)
-       DES_VEL_OLD_ME(:,2) = DES_VEL_NEW_ME(:,2)
-       DES_VEL_OLD_ME(:,3) = DES_VEL_NEW_ME(:,3)
-
-
-       PMASS_OLD_ME(:) = PMASS_NEW_ME(:)
-       RO_OLD_ME(:) = RO_NEW_ME(:)
-       DES_RADIUS_OLD_ME(:) = DES_RADIUS_NEW_ME(:)
-
-
-       FC_OLD_ME(:,1) = FC_NEW_ME(:,1)
-       FC_OLD_ME(:,2) = FC_NEW_ME(:,2)
-       FC_OLD_ME(:,3) = FC_NEW_ME(:,3)
+       DES_POS_OLD_ME(:,1:3) = DES_POS_NEW_ME(:,1:3)
+              
+       DES_VEL_OLD_ME(:,1:3) = DES_VEL_NEW_ME(:,1:3)
        
        !PRINT*,"PARTICLE COPY OLD NEW ME DONE"
       
@@ -796,25 +828,10 @@ END SUBROUTINE des_swapvalues_l
          
        IMPLICIT NONE
 
-       DES_POS_NEW_ME(:,1) = DES_POS_OLD_ME(:,1)
-       DES_POS_NEW_ME(:,2) = DES_POS_OLD_ME(:,2)
-       DES_POS_NEW_ME(:,3) = DES_POS_OLD_ME(:,3)
-
-       
-       DES_VEL_NEW_ME(:,1) = DES_VEL_OLD_ME(:,1)
-       DES_VEL_NEW_ME(:,2) = DES_VEL_OLD_ME(:,2)
-       DES_VEL_NEW_ME(:,3) = DES_VEL_OLD_ME(:,3)
-
-
-       PMASS_NEW_ME(:) = PMASS_OLD_ME(:)
-       RO_NEW_ME(:) = RO_OLD_ME(:)
-       DES_RADIUS_NEW_ME(:) = DES_RADIUS_OLD_ME(:)
-
-
-       FC_NEW_ME(:,1) = FC_OLD_ME(:,1)
-       FC_NEW_ME(:,2) = FC_OLD_ME(:,2)
-       FC_NEW_ME(:,3) = FC_OLD_ME(:,3)
-       
+       DES_POS_NEW_ME(:,1:3) = DES_POS_OLD_ME(:,1:3)
+              
+       DES_VEL_NEW_ME(:,1:3) = DES_VEL_OLD_ME(:,1:3)
+              
        !PRINT*,"PARTICLE COPY NEW OLD ME DONE"
       
      END SUBROUTINE PARTICLE_COPY_NEW_OLD_ME
@@ -825,25 +842,10 @@ END SUBROUTINE des_swapvalues_l
          
        IMPLICIT NONE
 
-       DES_POS_FREE_ME(:,1) = DES_POS_OLD_ME(:,1)
-       DES_POS_FREE_ME(:,2) = DES_POS_OLD_ME(:,2)
-       DES_POS_FREE_ME(:,3) = DES_POS_OLD_ME(:,3)
-
-       
-       DES_VEL_FREE_ME(:,1) = DES_VEL_OLD_ME(:,1)
-       DES_VEL_FREE_ME(:,2) = DES_VEL_OLD_ME(:,2)
-       DES_VEL_FREE_ME(:,3) = DES_VEL_OLD_ME(:,3)
-
-
-       PMASS_FREE_ME(:) = PMASS_OLD_ME(:)
-       RO_FREE_ME(:) = RO_OLD_ME(:)
-       DES_RADIUS_FREE_ME(:) = DES_RADIUS_OLD_ME(:)
-
-
-       FC_FREE_ME(:,1) = FC_OLD_ME(:,1)
-       FC_FREE_ME(:,2) = FC_OLD_ME(:,2)
-       FC_FREE_ME(:,3) = FC_OLD_ME(:,3)
-       
+       DES_POS_FREE_ME(:,1:3) = DES_POS_OLD_ME(:,1:3)
+              
+       DES_VEL_FREE_ME(:,1:3) = DES_VEL_OLD_ME(:,1:3)
+              
        !PRINT*,"PARTICLE COPY FREE OLD ME DONE"
       
      END SUBROUTINE PARTICLE_COPY_FREE_OLD_ME
@@ -854,39 +856,24 @@ END SUBROUTINE des_swapvalues_l
          
        IMPLICIT NONE
 
-       DES_POS_DEMI_ME(:,1) = DES_POS_OLD_ME(:,1)
-       !DES_POS_DEMI_ME(1,1) = 1
-       !PRINT*,DES_POS_DEMI_ME(:,1)
-       DES_POS_DEMI_ME(:,2) = DES_POS_OLD_ME(:,2)
-       DES_POS_DEMI_ME(:,3) = DES_POS_OLD_ME(:,3)
-
-       
-       DES_VEL_DEMI_ME(:,1) = DES_VEL_OLD_ME(:,1)
-       DES_VEL_DEMI_ME(:,2) = DES_VEL_OLD_ME(:,2)
-       DES_VEL_DEMI_ME(:,3) = DES_VEL_OLD_ME(:,3)
-
-
-       PMASS_DEMI_ME(:) = PMASS_OLD_ME(:)
-       RO_DEMI_ME(:) = RO_OLD_ME(:)
-       DES_RADIUS_DEMI_ME(:) = DES_RADIUS_OLD_ME(:)
-
-
-       FC_DEMI_ME(:,1) = FC_OLD_ME(:,1)
-       FC_DEMI_ME(:,2) = FC_OLD_ME(:,2)
-       FC_FREE_ME(:,3) = FC_OLD_ME(:,3)
-       
+       DES_POS_DEMI_ME(:,1:3) = DES_POS_OLD_ME(:,1:3)
+              
+       DES_VEL_DEMI_ME(:,1:3) = DES_VEL_OLD_ME(:,1:3)
+              
        !PRINT*,"PARTICLE COPY DEMI OLD ME DONE"
       
      END SUBROUTINE PARTICLE_COPY_DEMI_OLD_ME
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !       
 
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !       
-     SUBROUTINE EXPORT_ME(FILENAME,PLIST_POS_ME,PLIST_VEL_ME,PLIST_RADIUS_ME,N,IT)
+     SUBROUTINE EXPORT_ME(FILENAME,PLIST_POS_ME,PLIST_VEL_ME,PLIST_RADIUS_ME,&
+          PLIST_REACTION_ME,N,IT)
        IMPLICIT NONE
        
        CHARACTER(LEN=*) :: FILENAME
        DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: PLIST_POS_ME, PLIST_VEL_ME
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: PLIST_RADIUS_ME
+       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: PLIST_REACTION_ME
        INTEGER, OPTIONAL :: IT
        INTEGER :: N,K
              
@@ -900,7 +887,8 @@ END SUBROUTINE des_swapvalues_l
        DO K=1, N
           WRITE(24,'(10(E15.8,1X))')PLIST_POS_ME(K,1),PLIST_POS_ME(K,2),&
                PLIST_POS_ME(K,3),PLIST_VEL_ME(K,1),PLIST_VEL_ME(K,2),&
-               PLIST_VEL_ME(K,3),PLIST_RADIUS_ME(K)
+               PLIST_VEL_ME(K,3),PLIST_RADIUS_ME(K),PLIST_REACTION_ME(K,1),&
+               PLIST_REACTION_ME(K,2),PLIST_REACTION_ME(K,3)
           
        END DO
        CLOSE(24)

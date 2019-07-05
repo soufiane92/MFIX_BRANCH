@@ -239,7 +239,7 @@
             FC_TMP(:) = FC_TMP(:) + FN(:) + FT(:)
 
             FC(LL,:) = FC(LL,:) + FC_TMP(:)
-
+	    PRINT*,"FORCE: ",FT(:)
 !$omp atomic
             FC(I,1) = FC(I,1) - FC_TMP(1)
 !$omp atomic

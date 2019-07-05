@@ -37,6 +37,6 @@
 
       ENDDO
 !!$omp end parallel do
-
+      PRINT*,"OK"
       RETURN
       END SUBROUTINE CFUPDATEOLD

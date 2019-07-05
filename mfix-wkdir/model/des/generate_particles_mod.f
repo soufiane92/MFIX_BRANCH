@@ -85,11 +85,11 @@
 ! Global Variables:
 !---------------------------------------------------------------------//
 ! particle radius and density
-      use discretelement, only: DES_RADIUS, RO_Sol
+      use discretelement, only: DES_RADIUS, RO_Sol, DES_RADIUS_ME, RO_ME
 ! particle position new and old
-      use discretelement, only: DES_POS_NEW, DES_POS_OLD
+      use discretelement, only: DES_POS_NEW, DES_POS_OLD, DES_POS_NEW_ME, DES_POS_OLD_ME
 ! particle velocity new and old
-      use discretelement, only: DES_VEL_NEW, DES_VEL_OLD
+      use discretelement, only: DES_VEL_NEW, DES_VEL_OLD, DES_VEL_NEW_ME, DES_VEL_OLD_ME
 ! Simulation dimension (2D/3D)
       use discretelement, only: DIMN
 ! Number of particles in the system (current)
@@ -348,12 +348,41 @@
          IF(NO_K) VEL(3) = 0.0d0
 
 
+
+
+
          DES_POS_NEW(PIP,:) = POS(:)
          DES_VEL_NEW(PIP,:) = VEL(:)
          OMEGA_NEW(PIP,:) = 0.0d0
 
+! ================================ ME ================================ !
+
+	 DES_POS_NEW_ME(PIP,:) = POS(:)
+         DES_VEL_NEW_ME(PIP,:) = VEL(:)
+ 
+! ==================================================================== !
+
+
+
+
+
+
+
+
          DES_RADIUS(PIP) = D_P0(M)*HALF
          RO_SOL(PIP) =  RO_S0(M)
+
+! ================================ ME ================================ !
+
+	 DES_RADIUS_ME(PIP) = D_P0(M)*HALF
+         RO_ME(PIP) =  RO_S0(M)
+ 
+! ==================================================================== !
+
+
+
+
+
 
          PIJK(PIP,1) = I
          PIJK(PIP,2) = J
@@ -361,11 +390,32 @@
          PIJK(PIP,4) = IJK
          PIJK(PIP,5) = M
 
+
+
+
+
+
+
          IF(DO_OLD) THEN
             DES_VEL_OLD(PIP,:) = DES_VEL_NEW(PIP,:)
             DES_POS_OLD(PIP,:) = DES_POS_NEW(PIP,:)
             OMEGA_OLD(PIP,:) = ZERO
          ENDIF
+
+! ================================ ME ================================ !
+
+	 DES_VEL_OLD_ME(PIP,:) = DES_VEL_NEW_ME(PIP,:)
+         DES_POS_OLD_ME(PIP,:) = DES_POS_NEW_ME(PIP,:)
+ 
+! ==================================================================== !
+
+
+
+
+
+
+
+
 
          SOLIDS_DATA(M) = SOLIDS_DATA(M) + 1.0
 
@@ -564,6 +614,7 @@
 
       use des_allocate, only: PARTICLE_GROW
       use discretelement, only: PIJK, PIP, MAX_PIP, DES_VEL_NEW, DES_POS_NEW, DES_RADIUS, RO_SOL
+      use discretelement, only: DES_VEL_NEW_ME, DES_POS_NEW_ME, DES_RADIUS_ME, RO_ME
 
 ! IC Region bulk density (RO_s * EP_s)
       use ic, only: IC_EP_s
@@ -712,11 +763,31 @@
             CALL PARTICLE_GROW(PIP)
             MAX_PIP = max(PIP,MAX_PIP)
 
+
+
+
+
+
             DES_POS_NEW(PIP,:) = POS(:)
             DES_VEL_NEW(PIP,:) = randVEL(LC,:)
 
             DES_RADIUS(PIP) = D_P0(M)*HALF
             RO_SOL(PIP) =  RO_S0(M)
+
+! ================================ ME ================================ !
+
+	    DES_POS_NEW_ME(PIP,:) = POS(:)
+            DES_VEL_NEW_ME(PIP,:) = randVEL(LC,:)
+
+            DES_RADIUS_ME(PIP) = D_P0(M)*HALF
+            RO_ME(PIP) =  RO_S0(M)
+ 
+! ==================================================================== !
+
+
+
+
+
 
             PIJK(PIP,1) = I
             PIJK(PIP,2) = J
