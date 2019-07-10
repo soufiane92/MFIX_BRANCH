@@ -122,7 +122,7 @@ PROGRAM MAIN
   
   TC=0D0
   !> INITIAL KINETIC ENERGY
-  DO IT=1,1000
+  DO IT=1,2
      
      PRINT*,"ITÉRATION: ",IT,"TIME: ",TC
      
@@ -173,7 +173,7 @@ PROGRAM MAIN
      ACTIVE = .FALSE.
      
      !> ITERATION NLGS
-     DO NL_IT=1,1000
+     DO NL_IT=1,3
         RES = 0
         DO C=1,NB_CONTACTS
            P = LIST_OF_CONTACTS(C,1)
@@ -195,21 +195,34 @@ PROGRAM MAIN
 
            S = SQRT(DX**2+DY**2)-(P_DEMI(P)%R+P_DEMI(Q)%R)
            
-           !PRINT*,S,DX
+           PRINT*,DX
            !STOP
 
+           PRINT*,NX
+           
+           PRINT*,S
+           
            IF ( S<0 ) THEN   ! CONTACT CONDITION 
 
               UN_OLD = (P_OLD(Q)%U-P_OLD(P)%U)*NX + (P_OLD(Q)%V-P_OLD(P)%V)*NY
               UN_NEW = (P_NEW(Q)%U-P_NEW(P)%U)*NX + (P_NEW(Q)%V-P_NEW(P)%V)*NY
+
+              PRINT*,UN_OLD
+              PRINT*,UN_NEW
               
               VM(C) = (UN_NEW + UN_OLD*EN)/(1+EN)
-              
+
+              PRINT*,VM(C)
+           
               MEQ = 2*P_NEW(P)%M*P_NEW(Q)%M/(P_NEW(P)%M + P_NEW(Q)%M) 
-              
+
+              PRINT*,MEQ
+           
               GAMMA=1E3
               TAU_N = PN(C)-GAMMA*VM(C)*MEQ/DT
 
+              PRINT*,TAU_N
+           
               !> ACTIVE SET
               IF (TAU_N>0) THEN
                  DPN(C) = - VM(C)*MEQ/DT*EN
@@ -219,17 +232,19 @@ PROGRAM MAIN
                  !ACTIVE(C) = .FALSE.
               END IF
 
-              !PRINT*,"1 VEL NEW P: ",P_NEW(P)%U
-              !PRINT*,"1 VEL NEW I: ",P_NEW(Q)%U
-              !PRINT*,((-DPN(C))*DT/P_NEW(P)%M*NX)
+              PRINT*,DPN(C)
+           
+              PRINT*,"1 VEL NEW P: ",P_NEW(P)%U
+              PRINT*,"1 VEL NEW I: ",P_NEW(Q)%U
+              PRINT*,((-DPN(C))*DT/P_NEW(P)%M*NX)
               P_NEW(P)%U = P_NEW(P)%U + (-DPN(C))*DT/P_NEW(P)%M*NX!/(1+EN)
               P_NEW(P)%V = P_NEW(P)%V + (-DPN(C))*DT/P_NEW(P)%M*NY!/(1+EN)
               
               P_NEW(Q)%U = P_NEW(Q)%U + (+DPN(C))*DT/P_NEW(Q)%M*NX!/(1+EN)
               P_NEW(Q)%V = P_NEW(Q)%V + (+DPN(C))*DT/P_NEW(Q)%M*NY!/(1+EN)
 
-              !PRINT*,"2 VEL NEW P: ",P_NEW(P)%U
-              !PRINT*,"2 VEL NEW I: ",P_NEW(Q)%U
+              PRINT*,"2 VEL NEW P: ",P_NEW(P)%U
+              PRINT*,"2 VEL NEW I: ",P_NEW(Q)%U
               !STOP
               PN(C)=PN(C)+DPN(C)
 
@@ -242,6 +257,7 @@ PROGRAM MAIN
               P_FREE(Q)%X = P_OLD(Q)%X + DT*P_NEW(Q)%U 
               P_FREE(Q)%Y = P_OLD(Q)%Y + DT*P_NEW(Q)%V 
 
+              PRINT*,PN(C)
               
            ELSE   ! S > 0
               PN(C) = 0
@@ -254,7 +270,7 @@ PROGRAM MAIN
         IF (MAXVAL(ABS(DT*DPN(1:NB_CONTACTS))).LT.1E-16) EXIT ! CONDITION TO EXIT NLGS
         !P_NEW(1)%V=0.30991902E+01
      END DO
-     
+     PRINT*,NL_IT,MAXVAL(ABS(DT*DPN(1:NB_CONTACTS)))    
      
      DO P=1,NP
 
@@ -293,7 +309,7 @@ PROGRAM MAIN
         IF (TC>=0.34*10) EXIT
 
      ELSE IF  (TEST_CASE==TWO_PARTICLES) THEN
-        WRITE(30,'(10(E15.8,1X))')TC,P_NEW(1)%X,P_NEW(1)%Y,P_NEW(2)%X,P_NEW(2)%Y
+        WRITE(30,'(10(E15.8,1X))')TC,P_NEW(1)%X,P_NEW(1)%Y,P_NEW(1)%U,P_NEW(1)%V
         
      ELSE IF  (TEST_CASE==DAM_BREAK) THEN
         
