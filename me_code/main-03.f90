@@ -46,6 +46,7 @@ PROGRAM MAIN
   INTEGER,PARAMETER :: FREE_FALLING_PARTICLE = 101
   INTEGER,PARAMETER :: PARTICLE_COLLISION    = 102
   INTEGER,PARAMETER :: DAM_BREAK             = 103
+  INTEGER,PARAMETER :: TWO_PARTICLES           = 104
   
   XMIN=0
   XMAX=1
@@ -53,29 +54,18 @@ PROGRAM MAIN
   !PRINT*,XMIN,XMAX
   !STOP
   
-  TEST_CASE = FREE_FALLING_PARTICLE
+  TEST_CASE = TWO_PARTICLES
+  !TEST_CASE = FREE_FALLING_PARTICLE
   !TEST_CASE = PARTICLE_COLLISION
   !TEST_CASE = DAM_BREAK
 
-  !PRINT*,TEST_CASE
-  !STOP
-
-  
-  !> 1:NP-4
-  !> NP-5:NP
   !CALL INITIALIZE_FREEFALLINGPARTICLE(P_OLD,NP)
-  
-  ! ========================================== !
-  ! PRINT*,"0",NP ====== > "ICI NP = 16777216"
-  ! ========================================== !
   
   IF      (TEST_CASE==FREE_FALLING_PARTICLE) THEN
      CALL INITIALIZE_FREEFALLINGPARTICLE(P_OLD,NP)
-
-     ! ========================================== !
-     ! PRINT*,"4",NP ====== > "ICI NP = 5"
-     ! ========================================== !
-
+     
+  ELSE IF (TEST_CASE==TWO_PARTICLES) THEN
+     CALL INITIALIZE_2_PARTICLE(P_OLD,NP)   
      
   ELSE IF (TEST_CASE==DAM_BREAK) THEN
      CALL INITIALIZE_DAM(P_OLD,NP)
@@ -93,17 +83,13 @@ PROGRAM MAIN
   ALLOCATE(DPN( 100*NP ))
   ALLOCATE( VM( 100*NP ))
 
-  !PRINT*,NP
-  !PRINT*,P_OLD(1)
-  !STOP
-  
   !> JE CHERCHE LE RAYON LE PLUS PETIT
   RADIUS = HUGE(0D0)
   DO P=1,NP-4
      RADIUS=MIN(RADIUS,P_OLD(P)%R)
   END DO
   
-  !PRINT*,RADIUS
+  !PRINT*,RADIUS,DT
   !STOP
   
   !> ON FIXE LE PAS DE TEMPS ET LE COEFFICIENT 
@@ -137,8 +123,9 @@ PROGRAM MAIN
   TC=0D0
   !> INITIAL KINETIC ENERGY
   DO IT=1,1000
-     !PRINT*,DT,NP
-     !STOP
+     
+     PRINT*,"ITÉRATION: ",IT,"TIME: ",TC
+     
      TC = TC + DT
      DO P=1,NP
 
@@ -147,13 +134,17 @@ PROGRAM MAIN
         P_DEMI(P)%X = P_OLD(P)%X + 0.5*DT*P_OLD(P)%U
         P_DEMI(P)%Y = P_OLD(P)%Y + 0.5*DT*P_OLD(P)%V
         
+        !PRINT*,P_FREE(P)%U
+        !PRINT*,P_FREE(P)%V
         
         !> THETA-SCHEMA 0.5
         P_FREE(P)%U = P_OLD(P)%U + DT*0.5*(P_OLD(P)%FX+P_NEW(P)%FX)/P_NEW(P)%M
         P_FREE(P)%V = P_OLD(P)%V + DT*0.5*(P_OLD(P)%FY+P_NEW(P)%FY)/P_NEW(P)%M
         P_FREE(P)%X = P_OLD(P)%X + DT*0.5*(P_FREE(P)%U+P_OLD(P)%U)
         P_FREE(P)%Y = P_OLD(P)%Y + DT*0.5*(P_FREE(P)%V+P_OLD(P)%V)
-
+        
+        !PRINT*,P_FREE(P)%U
+        !PRINT*,P_FREE(P)%V
 
         !> THETA-SCHEMA 1.0
         !P_FREE(P)%U = P_OLD(P)%U + DT*1.0*(P_NEW(P)%FX)/P_NEW(P)%M
@@ -162,9 +153,14 @@ PROGRAM MAIN
         !> DOT{Q}_{0}{K+1} =  DOT{Q}_{FREE}{K}
         P_NEW(P)%U = P_FREE(P)%U
         P_NEW(P)%V = P_FREE(P)%V
+
+        !PRINT*,P_NEW(P)%U
+        !PRINT*,P_NEW(P)%V
         
      END DO
-     
+
+     !STOP
+
      !> RECHERCHE DES CONTACTS À PARTIR DE Q_{K+1/2} 
      CALL UPDATE_CONTACT_LIST(P_DEMI,NP,LIST_OF_CONTACTS,NB_CONTACTS&
           &,RADIUS)
@@ -199,7 +195,8 @@ PROGRAM MAIN
 
            S = SQRT(DX**2+DY**2)-(P_DEMI(P)%R+P_DEMI(Q)%R)
            
-           !PRINT*,"S ",NL_IT,S
+           !PRINT*,S,DX
+           !STOP
 
            IF ( S<0 ) THEN   ! CONTACT CONDITION 
 
@@ -213,7 +210,6 @@ PROGRAM MAIN
               GAMMA=1E3
               TAU_N = PN(C)-GAMMA*VM(C)*MEQ/DT
 
-              
               !> ACTIVE SET
               IF (TAU_N>0) THEN
                  DPN(C) = - VM(C)*MEQ/DT*EN
@@ -222,13 +218,19 @@ PROGRAM MAIN
                  DPN(C) = 0
                  !ACTIVE(C) = .FALSE.
               END IF
-              
+
+              !PRINT*,"1 VEL NEW P: ",P_NEW(P)%U
+              !PRINT*,"1 VEL NEW I: ",P_NEW(Q)%U
+              !PRINT*,((-DPN(C))*DT/P_NEW(P)%M*NX)
               P_NEW(P)%U = P_NEW(P)%U + (-DPN(C))*DT/P_NEW(P)%M*NX!/(1+EN)
               P_NEW(P)%V = P_NEW(P)%V + (-DPN(C))*DT/P_NEW(P)%M*NY!/(1+EN)
               
               P_NEW(Q)%U = P_NEW(Q)%U + (+DPN(C))*DT/P_NEW(Q)%M*NX!/(1+EN)
               P_NEW(Q)%V = P_NEW(Q)%V + (+DPN(C))*DT/P_NEW(Q)%M*NY!/(1+EN)
-              
+
+              !PRINT*,"2 VEL NEW P: ",P_NEW(P)%U
+              !PRINT*,"2 VEL NEW I: ",P_NEW(Q)%U
+              !STOP
               PN(C)=PN(C)+DPN(C)
 
               !P_FREE(P)%X = P_OLD(P)%X + DT*0.5*(P_NEW(P)%U + P_OLD(P)%U )
@@ -289,6 +291,9 @@ PROGRAM MAIN
         PRINT'(I5,1X,I2,1X,10(E15.8,1X))',IT,NB_CONTACTS,P_NEW(1)%Y,EX(1),P_NEW(1)%V,EX(2)
         WRITE(20,'(10(E15.8,1X))')TC,P_NEW(1)%Y,EX(1),ABS(P_NEW(1)%Y-EX(1))
         IF (TC>=0.34*10) EXIT
+
+     ELSE IF  (TEST_CASE==TWO_PARTICLES) THEN
+        WRITE(30,'(10(E15.8,1X))')TC,P_NEW(1)%X,P_NEW(1)%Y,P_NEW(2)%X,P_NEW(2)%Y
         
      ELSE IF  (TEST_CASE==DAM_BREAK) THEN
         
@@ -492,6 +497,82 @@ CONTAINS
   END SUBROUTINE INITIALIZE_FREEFALLINGPARTICLE
 ! =================================================================================== !  
 
+! =================================================================================== !  
+  SUBROUTINE INITIALIZE_2_PARTICLE(PCL,NP)
+    IMPLICIT NONE
+    INTEGER :: NP
+    TYPE(PARTICLE),DIMENSION(:),ALLOCATABLE:: PCL
+
+    INTEGER :: N
+    INTEGER :: I,J,P
+
+    REAL(KIND=8) :: XC,YC,U,V,R1,R2,NX,NY
+    REAL(KIND=8) :: RADIUS,TC,VC
+    
+    NP = 2
+    ALLOCATE( PCL (NP+4) )
+    
+    !> 1 SECOND OF SIMULATION
+    RADIUS = 1E-1
+    XC = 0.5
+    YC = 0.5
+    U = 1.00
+    V = 0.00
+    R1 = RADIUS
+    R2 = RADIUS
+
+    NX = U/SQRT(U**2+V**2)
+    NY = V/SQRT(U**2+V**2)
+    
+    !> PARTICULE DE GAUCHE 
+    PCL(1)%X = 0.51
+    PCL(1)%Y = YC
+    PCL(1)%U = U
+    PCL(1)%V = V
+    PCL(1)%R = RADIUS
+    PCL(1)%RHO = 2600
+    PCL(1)%FX = 0.0
+    PCL(1)%FY = -9.8
+    
+    !> PARTICULE DE DROITE
+    PCL(2)%X = 0.59
+    PCL(2)%Y = 0.5
+    PCL(2)%U = -U
+    PCL(2)%V = V
+    PCL(2)%R = RADIUS
+    PCL(2)%RHO = 2600
+    PCL(2)%FX = 0.0
+    PCL(2)%FY = -9.8
+    
+
+    
+    
+    ! DO P=1,(NP-2)
+    !    PCL(2+P)%X = XC - (P-1)*2*RADIUS*NX
+    !    PCL(2+P)%Y = YC - (P-1)*2*RADIUS*NY
+    !    PCL(2+P)%U = 0
+    !    PCL(2+P)%V = 0
+    !    PCL(2+P)%R = RADIUS
+    !    PCL(2+P)%RHO = 2600
+    !    PCL(2+P)%FX = 0.0
+    !    PCL(2+P)%FY = 0.0
+    ! END DO
+    
+    
+    CALL SET_BOUNDARY_WALL(PCL,NP)
+    
+    NP = NP+4
+    PI = ACOS(-1.0)
+    DO P=1,NP-4
+       PCL(P)%M= PCL(P)%RHO * PI*PCL(P)%R**2
+       PCL(P)%FX = PCL(P)%FX*PCL(P)%M
+       PCL(P)%FY = PCL(P)%FY*PCL(P)%M
+    END DO
+    
+  END SUBROUTINE INITIALIZE_2_PARTICLE
+! =================================================================================== !  
+
+  
 ! =================================================================================== !  
   SUBROUTINE INITIALIZE_DAM(PCL,NP)
     IMPLICIT NONE
