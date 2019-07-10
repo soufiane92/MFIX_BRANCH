@@ -371,6 +371,7 @@ MODULE DES_TIME_MARCH
             !STOP
                        
             !> CONDITION TO EXIT NLGS LOOP
+            !> PROBLEME VENAIT DE LA !!!!!
             IF (MAXVAL(ABS(DT*DPN(1:NEIGHBOR_INDEX_ME(PARTICLES)-1))) .LT.1E-16) THEN
                PRINT*,"EXIT NLGS LOOP",MAXVAL(ABS(DT*DPN(1:NEIGHBOR_INDEX_ME(PARTICLES)-1))) 
                EXIT 
