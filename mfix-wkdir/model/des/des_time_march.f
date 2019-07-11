@@ -54,7 +54,9 @@ MODULE DES_TIME_MARCH
 !                                                                      !
 !^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!
       SUBROUTINE DES_TIME_INIT
+
         USE DISCRETELEMENT
+
         IMPLICIT NONE
        
         PRINT*,"DES_TIME_INIT_ME"
@@ -110,10 +112,7 @@ MODULE DES_TIME_MARCH
            DES_VEL_DEMI_ME(P,1:3) = DES_VEL_OLD_ME(P,1:3)
             
         END DO
-        
-        CALL EXPORT_ME('OUT.DAT',DES_POS_OLD_ME,DES_VEL_OLD_ME,DES_RADIUS_ME,&
-             FC_OLD_ME,NP)
-        
+                
         CALL OUTPUT_MANAGER(.FALSE., .FALSE.)
         
        
@@ -123,17 +122,17 @@ MODULE DES_TIME_MARCH
 !vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv!
 !                                                                      !
 !     Subroutine: DES_TIME_STEP                                        !
-!     Author: Jay Boyalakuntla                        Date: 21-Jun-04  !
+!     Author: SOUFIANE                                Date: 21-Jun-04  !
 !                                                                      !
 !     Purpose: Main DEM driver routine                                 !
 !                                                                      !
 !^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!
       SUBROUTINE DES_TIME_STEP(NN)
-         use compar, only: ADJUST_PARTITION
 
-! Modules
-!---------------------------------------------------------------------//
+        use compar, only: ADJUST_PARTITION
+
          IMPLICIT NONE
+
          INTEGER, INTENT(IN) :: NN
          
          PRINT*,"DES_TIME_STEP_ME: ",NN
@@ -144,10 +143,7 @@ MODULE DES_TIME_MARCH
             PRINT*,"VELOCITY OLD PARTICLE:",P,": ",DES_VEL_OLD_ME(P,1:3)
             PRINT*,"======================================================"
          END DO
-         
-         !CALL MPI_FINALIZE(IERR)
-         !STOP
-                  
+                           
          DO P = 1, PARTICLES
             
             !> Q_{K+1/2} =  Q_{K} + 0.5 DT \DOT{Q}_{K} 
@@ -156,10 +152,7 @@ MODULE DES_TIME_MARCH
             DES_POS_DEMI_ME(P,3) = DES_POS_OLD_ME(P,3) + 0.5*DT*DES_VEL_OLD_ME(P,3)
             
             !> THETA-SCHEMA 0.5
-            
-            !PRINT*,DES_VEL_FREE_ME(P,1)
-            !PRINT*,DES_VEL_FREE_ME(P,2)
-            
+                      
             DES_VEL_FREE_ME(P,1) = DES_VEL_OLD_ME(P,1) + 0.5*DT*(FC_OLD_ME(P,1)+&
                  FC_NEW_ME(P,1))/PMASS_ME(P)
             DES_VEL_FREE_ME(P,2) = DES_VEL_OLD_ME(P,2) + 0.5*DT*(FC_OLD_ME(P,2)+&
@@ -173,23 +166,13 @@ MODULE DES_TIME_MARCH
                  +DES_VEL_OLD_ME(P,2))
             DES_POS_FREE_ME(P,3) = DES_POS_OLD_ME(P,3) + 0.5*DT*(DES_VEL_FREE_ME(P,3)&
                  +DES_VEL_OLD_ME(P,3))
-
-            !PRINT*,DES_VEL_FREE_ME(P,1)
-            !PRINT*,DES_VEL_FREE_ME(P,2)
             
             !> DOT{Q}_{0}{K+1} =  DOT{Q}_{FREE}{K}
             DES_VEL_NEW_ME(P,1) = DES_VEL_FREE_ME(P,1)
             DES_VEL_NEW_ME(P,2) = DES_VEL_FREE_ME(P,2)
             DES_VEL_NEW_ME(P,3) = DES_VEL_FREE_ME(P,3)
-
-            !PRINT*,DES_VEL_NEW_ME(P,1)
-            !PRINT*,DES_VEL_NEW_ME(P,2)
-            !PRINT*,DES_VEL_NEW_ME(P,3)
             
          END DO
-
-         !CALL MPI_FINALIZE(IERR)
-         !STOP
          
          !> PARTICLES IN MOTION WITHOUT CONTACT FORCES
          DO P = 1, PARTICLES
@@ -201,16 +184,10 @@ MODULE DES_TIME_MARCH
             !PRINT*,"======================================================"            
          END DO
 
-         !CALL MPI_FINALIZE(IERR)
-         !STOP
-
          NB_CONTACTS = 0
 
          !> NEIGHBOR SEARCH
          CALL NEIGHBOUR_ME
-
-         !CALL MPI_FINALIZE(IERR)
-         !STOP
          
          !> INITIALIZATION OF ACTIVE SET PARAMETERS
          PN = 0
@@ -219,7 +196,7 @@ MODULE DES_TIME_MARCH
          ACTIVE = .FALSE.
          
          !> NLGS LOOP
-         DO NLGS = 1, 3
+         DO NLGS = 1, 10
          
             DO P = 1, PARTICLES
                
@@ -233,7 +210,7 @@ MODULE DES_TIME_MARCH
                DO CC = CC_START, CC_END-1
                   I = NEIGHBORS_ME(CC)
                   IF(IS_NONEXISTENT(I)) CYCLE
-                  ! IF (I<=P) CYCLE !> À TESTER
+                  
                   PRINT*,"! ==================================================== !"
                   PRINT*,"! NOMBRE DE CONTACTS: ",NB_CONTACTS,"                    !"
                   PRINT*,"! CONNECTIVITE P -- I: ",P,"<==>",I,"  !"
@@ -245,9 +222,6 @@ MODULE DES_TIME_MARCH
                   DX = DES_POS_DEMI_ME(P,1) - DES_POS_DEMI_ME(I,1)
                   DY = DES_POS_DEMI_ME(P,2) - DES_POS_DEMI_ME(I,2)
                   DZ = DES_POS_DEMI_ME(P,3) - DES_POS_DEMI_ME(I,3)
-                  
-                  !CALL MPI_FINALIZE(IERR)
-                  !STOP
                   
                   PRINT*,"--> DX: ",DX
                   
@@ -261,9 +235,6 @@ MODULE DES_TIME_MARCH
                   S = SQRT(DX**2+DY**2+DZ**2)-(DES_RADIUS_ME(P)+DES_RADIUS_ME(I))
                   
                   PRINT*,"--> S: ",S
-
-                  !CALL MPI_FINALIZE(IERR)
-                  !STOP
                   
                   IF (S<0) THEN     ! CONTACT CONDITION
                      
@@ -278,9 +249,6 @@ MODULE DES_TIME_MARCH
                           (DES_VEL_NEW_ME(P,3)-DES_VEL_NEW_ME(I,3))*NZ
                      
                      PRINT*,"--> UN_NEW: ",UN_NEW
-                     !PRINT*,PMASS_ME(P),PMASS_ME(I)
-                     !CALL MPI_FINALIZE(IERR)
-                     !STOP
                      
                      VM(CC) = (UN_NEW + UN_OLD * EN) / (1 + EN)
                      
@@ -294,10 +262,7 @@ MODULE DES_TIME_MARCH
                      TAU_N = PN(CC) - GAMMA * VM(CC) * MEQ / DT
                      
                      PRINT*,"--> TAU_N: ",TAU_N
-                     
-                     !CALL MPI_FINALIZE(IERR)
-                     !STOP
-                     
+                                          
                      !> ACTIVE SET
                      IF (TAU_N>0) THEN
                         DPN(CC) = - VM(CC) * MEQ / DT * EN
@@ -307,13 +272,9 @@ MODULE DES_TIME_MARCH
                      END IF
                      
                      PRINT*,"--> DPN(CC): ",DPN(CC)
-                     
-                     !CALL MPI_FINALIZE(IERR)
-                     !STOP
-                     
-                     PRINT*,"1 VEL NEW P: ",DES_VEL_NEW_ME(P,1)
-                     PRINT*,"1 VEL NEW I: ",DES_VEL_NEW_ME(I,1)
-                     PRINT*,((-DPN(CC))*DT/PMASS_ME(P)*NX)
+                                          
+                     !PRINT*,"1 VEL NEW P: ",DES_VEL_NEW_ME(P,1)
+                     !PRINT*,"1 VEL NEW I: ",DES_VEL_NEW_ME(I,1)
                      
                      DES_VEL_NEW_ME(P,1)=DES_VEL_NEW_ME(P,1)+(DPN(CC))*DT/PMASS_ME(P)*NX
                      DES_VEL_NEW_ME(P,2)=DES_VEL_NEW_ME(P,2)+(DPN(CC))*DT/PMASS_ME(P)*NY
@@ -323,18 +284,15 @@ MODULE DES_TIME_MARCH
                      DES_VEL_NEW_ME(I,2)=DES_VEL_NEW_ME(I,2)+(-DPN(CC))*DT/PMASS_ME(I)*NY
                      DES_VEL_NEW_ME(I,3)=DES_VEL_NEW_ME(I,3)+(-DPN(CC))*DT/PMASS_ME(I)*NZ
                      
-                     PRINT*,"2 VEL NEW P: ",DES_VEL_NEW_ME(P,1)
-                     PRINT*,"2 VEL NEW I: ",DES_VEL_NEW_ME(I,1)
-                     
+                     !PRINT*,"2 VEL NEW P: ",DES_VEL_NEW_ME(P,1)
+                     !PRINT*,"2 VEL NEW I: ",DES_VEL_NEW_ME(I,1)
+
                      !CALL MPI_FINALIZE(IERR)
                      !STOP
-                     
+                                          
                      PN(CC) = PN(CC) + DPN(CC)
                      PRINT*,"--> PN(CC): ",PN(CC)
-                        
-                     !CALL MPI_FINALIZE(IERR)
-                     !STOP
-                     
+                                             
                      !PRINT*,"1 POS FREE P: ",DES_POS_FREE_ME(P,1:3)
                      !PRINT*,"1 POS FREE I: ",DES_POS_FREE_ME(I,1:3)
                      
@@ -366,10 +324,7 @@ MODULE DES_TIME_MARCH
                END IF
 
             END DO
-            
-            !CALL MPI_FINALIZE(IERR)
-            !STOP
-                       
+                                   
             !> CONDITION TO EXIT NLGS LOOP
             IF (MAXVAL(ABS(DT*DPN(1:NEIGHBOR_INDEX_ME(PARTICLES)-1))) .LT.1E-16) THEN
                PRINT*,"EXIT NLGS LOOP",MAXVAL(ABS(DT*DPN(1:NEIGHBOR_INDEX_ME(PARTICLES)-1))) 
@@ -392,17 +347,11 @@ MODULE DES_TIME_MARCH
             !> NEW ME VARIABLES --> OLD ME VARIABLES 
             DES_POS_OLD_ME(P,1:3) = DES_POS_NEW_ME(P,1:3)  
             DES_VEL_OLD_ME(P,1:3) = DES_VEL_NEW_ME(P,1:3)
-            
-            !PRINT*,DES_POS_OLD_ME(P,1)
-            !PRINT*,DES_VEL_OLD_ME(P,1)
-            
+                        
             !> NEW ME VARIABLES --> MFIX VARIABLES 
             DES_POS_NEW(P,1:3) = DES_POS_NEW_ME(P,1:3)
             DES_VEL_NEW(P,1:3) = DES_VEL_NEW_ME(P,1:3)
-            
-            !PRINT*,DES_POS_NEW(P,1)
-            !PRINT*,DES_VEL_NEW(P,1)
-            
+                        
          END DO
          
          !CALL MPI_FINALIZE(IERR)
