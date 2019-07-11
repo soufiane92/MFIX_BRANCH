@@ -122,7 +122,7 @@ PROGRAM MAIN
   
   TC=0D0
   !> INITIAL KINETIC ENERGY
-  DO IT=1,2
+  DO IT=1,10
      
      PRINT*,"ITÉRATION: ",IT,"TIME: ",TC
      
