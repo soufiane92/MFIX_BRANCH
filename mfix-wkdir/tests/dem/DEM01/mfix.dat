@@ -69,7 +69,11 @@
 !---------------------------------------------------------------------//
   MMAX = 1
 
-  PARTICLES = 2                ! Number of particles
+  GRAVITY_X = 0
+  GRAVITY_Y = 0
+  GRAVITY_Z = 0
+
+  PARTICLES = 1                ! Number of particles
 
 ! Friction coefficients. (1)
   MEW =   0.0                  ! particle-particle

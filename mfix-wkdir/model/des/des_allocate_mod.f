@@ -74,7 +74,7 @@ CONTAINS
 ! For parallel processing the array size required should be either
 ! specified by the user or could be determined from total particles
 ! with some factor.
-      MAX_PIP = merge(0, PARTICLES/numPEs, PARTICLES==UNDEFINED_I)
+      MAX_PIP = merge(0, 4*PARTICLES/numPEs, PARTICLES==UNDEFINED_I)
       MAX_PIP = MAX(MAX_PIP,4)
 
       WRITE(ERR_MSG,1000) trim(iVal(MAX_PIP))
@@ -138,11 +138,13 @@ CONTAINS
       Allocate(  DES_POS_NEW_ME (MAX_PIP,DIMN) )
       Allocate(  DES_POS_FREE_ME (MAX_PIP,DIMN) )
       Allocate(  DES_POS_DEMI_ME (MAX_PIP,DIMN) )
+      Allocate(  DES_POS_GHOST_ME (MAX_PIP,DIMN) )
 
       Allocate(  DES_VEL_OLD_ME (MAX_PIP,DIMN) )
       Allocate(  DES_VEL_NEW_ME (MAX_PIP,DIMN) )
       Allocate(  DES_VEL_FREE_ME (MAX_PIP,DIMN) )
       Allocate(  DES_VEL_DEMI_ME (MAX_PIP,DIMN) )
+      Allocate(  DES_VEL_GHOST_ME (MAX_PIP,DIMN) )
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !
 
 ! ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !
@@ -631,7 +633,7 @@ CONTAINS
         INTEGER new_size
 
         lSIZE1 = size(neighbors_me,1)
-
+        !PRINT*,LSIZE1,neighbors_me
         IF ( new_neigh_max .le. lSIZE1 ) RETURN
 
         new_size = lSIZE1
@@ -784,4 +786,78 @@ CONTAINS
 
       END SUBROUTINE PARTICLE_GROW
 
+! ==================================================================== !
+! ====================== PARTICLE GROW ME ============================ !
+! ==================================================================== !
+
+      SUBROUTINE PARTICLE_GROW_ME(new_max_pip)
+
+        USE des_rxns
+        USE des_thermo
+        USE discretelement
+        USE mfix_pic
+        USE particle_filter
+        USE resize
+        USE run
+
+        IMPLICIT NONE
+
+        integer, intent(in) :: new_max_pip
+        integer :: old_size, new_size
+
+        max_pip = max(max_pip, new_max_pip)
+        IF (new_max_pip .le. size(des_radius_ME)) RETURN
+
+        old_size = size(des_radius_ME)
+
+        new_size = old_size
+
+        DO WHILE (new_size < new_max_pip)
+           new_size = 2*new_size
+        ENDDO
+
+        call real_grow(des_radius_ME,new_size)
+        call real_grow(RO_ME,new_size)
+        !call real_grow(PVOL,new_size)
+        call real_grow(PMASS_ME,new_size)
+        !call real_grow(OMOI,new_size)
+        call real_grow2_reverse(DES_POS_NEW_ME,new_size)
+        call real_grow2_reverse(DES_VEL_NEW_ME,new_size)
+        !call real_grow2_reverse(OMEGA_NEW,new_size)
+        call real_grow2_reverse(PPOS_ME,new_size)
+        !call byte_grow(PARTICLE_STATE,new_size)
+        !call integer_grow(iglobal_id,new_size)
+        !call integer_grow2_reverse(pijk,new_size)
+        !call integer_grow(dg_pijk,new_size)
+        !call integer_grow(dg_pijkprv,new_size)
+        !call logical_grow(ighost_updated,new_size)
+        call real_grow2_reverse(FC_OLD_ME,new_size)
+        call real_grow2_reverse(FC_NEW_ME,new_size)
+        !call real_grow2_reverse(TOW,new_size)
+        !call real_grow(F_GP,new_size)
+        !call integer_grow2(WALL_COLLISION_FACET_ID,new_size)
+        !call real_grow3(WALL_COLLISION_PFT,new_size)
+        !call real_grow2_reverse(DRAG_FC,new_size)
+
+        call integer_grow(NEIGHBOR_INDEX_ME,new_size)
+        call integer_grow(NEIGHBOR_INDEX_OLD_ME,new_size)
+
+        !IF(PARTICLE_ORIENTATION) call real_grow2_reverse(ORIENTATION,new_size)
+
+        call real_grow2_reverse(DES_POS_OLD_ME,new_size)
+        call real_grow2_reverse(DES_VEL_OLD_ME,new_size)
+        !call real_grow2_reverse(DES_ACC_OLD_ME,new_size)
+        !call real_grow2_reverse(OMEGA_OLD_ME,new_size)
+        !call real_grow2_reverse(ROT_ACC_OLD_ME,new_size)
+
+        CALL DES_INIT_PARTICLE_ARRAYS(old_size+1,new_size)
+
+        PRINT*,"PARTICLE GROW ME DONE"
+
+        RETURN
+
+      END SUBROUTINE PARTICLE_GROW_ME
+! ==================================================================== !
+! ==================================================================== !
+! ==================================================================== !
     END MODULE DES_ALLOCATE

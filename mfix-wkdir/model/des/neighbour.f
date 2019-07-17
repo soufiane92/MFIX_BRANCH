@@ -113,9 +113,9 @@ LOGICAL :: found
       INTEGER :: CC,LL,CC_START,CC_END,CC_START_OLD,CC_END_OLD,CC_OLD
       LOGICAL :: FOUND
 
-      !PRINT*,"1",PPOS_ME(2,:)
+      
       PPOS_ME(:,:) = DES_POS_DEMI_ME(:,:)
-      !PRINT*,"2",PPOS_ME(2,:)
+      
       NEIGHBOR_INDEX_OLD_ME(:) = NEIGHBOR_INDEX_ME(:)
 
       DO CC=1, SIZE(NEIGHBORS_ME)

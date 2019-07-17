@@ -95,7 +95,7 @@ PROGRAM MAIN
   !> ON FIXE LE PAS DE TEMPS ET LE COEFFICIENT 
   !> DE RESTITUTION EN
   DT = 0.1*RADIUS
-  EN = 0.9
+  EN = .6
   
   !PRINT*,DT,EN
   !STOP
@@ -122,7 +122,7 @@ PROGRAM MAIN
   
   TC=0D0
   !> INITIAL KINETIC ENERGY
-  DO IT=1,10
+  DO IT=1,2
      
      PRINT*,"ITÉRATION: ",IT,"TIME: ",TC
      
@@ -179,69 +179,72 @@ PROGRAM MAIN
            P = LIST_OF_CONTACTS(C,1)
            Q = LIST_OF_CONTACTS(C,2)
            !>
+           !DX = (P_FREE(Q)%X-P_FREE(P)%X)
+           !DY = (P_FREE(Q)%Y-P_FREE(P)%Y)
            DX = (P_DEMI(Q)%X-P_DEMI(P)%X)
            DY = (P_DEMI(Q)%Y-P_DEMI(P)%Y)
            
            NX = DX/SQRT(DX**2+DY**2)
            NY = DY/SQRT(DX**2+DY**2)
-                      
+                    
 
            ! ATTENTION L'ESTIMATION DISTANCE N'EST PAS
            ! SUR UN CRANK-NICHOLSON
-           !DX = (P_FREE(Q)%X-P_FREE(P)%X)
-           !DY = (P_FREE(Q)%Y-P_FREE(P)%Y)
-           DX = (P_DEMI(Q)%X-P_DEMI(P)%X)
-           DY = (P_DEMI(Q)%Y-P_DEMI(P)%Y)
+           DX = (P_FREE(Q)%X-P_FREE(P)%X)
+           DY = (P_FREE(Q)%Y-P_FREE(P)%Y)
+           !DX = (P_DEMI(Q)%X-P_DEMI(P)%X)
+           !DY = (P_DEMI(Q)%Y-P_DEMI(P)%Y)
 
            S = SQRT(DX**2+DY**2)-(P_DEMI(P)%R+P_DEMI(Q)%R)
            
-           PRINT*,DX
+           PRINT*,'DISTANCE ENTRE LES CENTRES',DX
            !STOP
 
-           PRINT*,NX
+           PRINT*,'NORMALE Dir. X',NX
            
-           PRINT*,S
+           PRINT*,'DISTANCE',S
            
            IF ( S<0 ) THEN   ! CONTACT CONDITION 
 
               UN_OLD = (P_OLD(Q)%U-P_OLD(P)%U)*NX + (P_OLD(Q)%V-P_OLD(P)%V)*NY
               UN_NEW = (P_NEW(Q)%U-P_NEW(P)%U)*NX + (P_NEW(Q)%V-P_NEW(P)%V)*NY
 
-              PRINT*,UN_OLD
-              PRINT*,UN_NEW
+              PRINT*,'ANCIENNE VITESSE NORMALE',UN_OLD
+              PRINT*,'NOUVELLE VITESSE NORMALE',UN_NEW
               
               VM(C) = (UN_NEW + UN_OLD*EN)/(1+EN)
 
-              PRINT*,VM(C)
+              PRINT*,'VITESSE MOREAU',VM(C)
            
-              MEQ = 2*P_NEW(P)%M*P_NEW(Q)%M/(P_NEW(P)%M + P_NEW(Q)%M) 
+              MEQ = P_NEW(P)%M*P_NEW(Q)%M/(P_NEW(P)%M + P_NEW(Q)%M) 
 
               PRINT*,MEQ
            
-              GAMMA=1E3
+              GAMMA=1E+3
               TAU_N = PN(C)-GAMMA*VM(C)*MEQ/DT
 
-              PRINT*,TAU_N
+              PRINT*,'TAU_N=',TAU_N,PN(C),GAMMA*VM(C)*MEQ/DT
+              PRINT*,'Normal',NX,NY
            
               !> ACTIVE SET
               IF (TAU_N>0) THEN
-                 DPN(C) = - VM(C)*MEQ/DT*EN
+                 DPN(C) = - VM(C)*MEQ/DT!!*EN
                  ACTIVE(C) = .TRUE.
               ELSE
                  DPN(C) = 0
                  !ACTIVE(C) = .FALSE.
               END IF
 
-              PRINT*,DPN(C)
+              PRINT*,'DELTA REACTION',DPN(C)
            
               PRINT*,"1 VEL NEW P: ",P_NEW(P)%U
               PRINT*,"1 VEL NEW I: ",P_NEW(Q)%U
-              PRINT*,((-DPN(C))*DT/P_NEW(P)%M*NX)
-              P_NEW(P)%U = P_NEW(P)%U + (-DPN(C))*DT/P_NEW(P)%M*NX!/(1+EN)
-              P_NEW(P)%V = P_NEW(P)%V + (-DPN(C))*DT/P_NEW(P)%M*NY!/(1+EN)
+              PRINT*,'EFFORT NORMAL',((-DPN(C))*DT/P_NEW(P)%M*NX)
+              P_NEW(P)%U = P_NEW(P)%U + (-DPN(C))*DT/P_NEW(P)%M*NX*(1+EN)
+              P_NEW(P)%V = P_NEW(P)%V + (-DPN(C))*DT/P_NEW(P)%M*NY*(1+EN)
               
-              P_NEW(Q)%U = P_NEW(Q)%U + (+DPN(C))*DT/P_NEW(Q)%M*NX!/(1+EN)
-              P_NEW(Q)%V = P_NEW(Q)%V + (+DPN(C))*DT/P_NEW(Q)%M*NY!/(1+EN)
+              P_NEW(Q)%U = P_NEW(Q)%U + (+DPN(C))*DT/P_NEW(Q)%M*NX*(1+EN)
+              P_NEW(Q)%V = P_NEW(Q)%V + (+DPN(C))*DT/P_NEW(Q)%M*NY*(1+EN)
 
               PRINT*,"2 VEL NEW P: ",P_NEW(P)%U
               PRINT*,"2 VEL NEW I: ",P_NEW(Q)%U
@@ -267,10 +270,10 @@ PROGRAM MAIN
         END DO
         
         RES= MAXVAL(ABS(DPN(1:NB_CONTACTS)))
-        IF (MAXVAL(ABS(DT*DPN(1:NB_CONTACTS))).LT.1E-16) EXIT ! CONDITION TO EXIT NLGS
+        IF (RES.LT.1E-16) EXIT ! CONDITION TO EXIT NLGS
         !P_NEW(1)%V=0.30991902E+01
      END DO
-     PRINT*,NL_IT,MAXVAL(ABS(DT*DPN(1:NB_CONTACTS)))    
+     PRINT*,NL_IT,RES    
      
      DO P=1,NP
 

@@ -3,7 +3,6 @@ MODULE DES_TIME_MARCH
 
       
   use discretelement
-  use des_allocate
   use functions
   use machine
   
@@ -59,11 +58,10 @@ MODULE DES_TIME_MARCH
         USE DISCRETELEMENT
 
         IMPLICIT NONE
-        
-        PRINT*,"! ========================================= ! "
-        PRINT*,"! =========> INIT DEM SIMULATIONS <======== ! "
-        PRINT*,"! ========================================= ! "
-        
+
+        PRINT*,"! ======================== ! "
+        PRINT*,"! ==> DES_TIME_INIT_ME <== ! "
+        PRINT*,"! ======================== ! "
         
         RADIUS = HUGE(0D0)
         DO P = 1, PARTICLES
@@ -76,7 +74,7 @@ MODULE DES_TIME_MARCH
         FACTOR = CEILING(real((TSTOP-TIME)/DTSOLID))
         
         DT = 0.1 * RADIUS
-        EN = 1.0
+        EN = 0.9
         
         !> PARTICLES INITIALIZATION
         DO P = 1, PARTICLES
@@ -116,7 +114,7 @@ MODULE DES_TIME_MARCH
            DES_VEL_DEMI_ME(P,1:3) = DES_VEL_OLD_ME(P,1:3)
             
         END DO
-
+                
         CALL OUTPUT_MANAGER(.FALSE., .FALSE.)
         
        
@@ -134,18 +132,12 @@ MODULE DES_TIME_MARCH
       SUBROUTINE DES_TIME_STEP(NN)
 
         use compar, only: ADJUST_PARTITION
-        use geometry, only: X_MIN, X_MAX, Y_MIN, Y_MAX, Z_MIN, Z_MAX
-        
-        IMPLICIT NONE
+
+         IMPLICIT NONE
 
          INTEGER, INTENT(IN) :: NN
-         DOUBLE PRECISION :: X, Y
-
-         PRINT*,""
-         PRINT*,""
-         PRINT*,"! ================================================================================================================ ! "
-         PRINT*,"! ==========================> STEP: ",NN," ==> TIME: ",NN*DT," <========================= !"
-         PRINT*,"! ================================================================================================================ ! "
+         
+         !PRINT*,"DES_TIME_STEP_ME: ",NN
                                              
          DO P = 1, PARTICLES
             
@@ -185,85 +177,9 @@ MODULE DES_TIME_MARCH
 
          NB_CONTACTS = 0
 
-! ============================================================================ !
-! ================================ RIGID WALLS ================================ !
-! ============================================================================ !
-
-         DO P = 1, PARTICLES
-            
-            X = DES_POS_DEMI_ME(P,1)
-            
-            IF (ABS(X - X_MIN) .LT. 1e-2) THEN
-               
-               PARTICLES = PARTICLES + 1
-               PIP = PIP + 1
-            
-               DES_RADIUS_ME(PARTICLES) = 0.1
-               PMASS_ME(PARTICLES) = 1e12
-
-               DES_POS_DEMI_ME(PARTICLES,1:3) = 0.0
-               DES_POS_DEMI_ME(PARTICLES,  1) = X_MIN - DES_RADIUS_ME(PARTICLES)
-
-               DES_VEL_DEMI_ME(PARTICLES,1:3) = 0.0
-
-               PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
-
-            ELSE IF (ABS(X - X_MAX) .LT. 1e-2) THEN
-
-               PARTICLES = PARTICLES + 1
-               PIP = PIP + 1
-               
-               DES_RADIUS_ME(PARTICLES) = 0.1
-               PMASS_ME(PARTICLES) = 1e12
-
-               DES_POS_DEMI_ME(PARTICLES,1:3) = 0.0
-               DES_POS_DEMI_ME(PARTICLES,  1) = X_MAX + DES_RADIUS_ME(PARTICLES)
-
-               DES_VEL_DEMI_ME(PARTICLES,1:3) = 0.0
-
-               PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
-               
-            END IF
-
-         END DO
-         
-         !DO P = 1, PARTICLES
-         !   PRINT'(5(f15.8,1x))',DES_POS_DEMI_ME(P,1:3),DES_RADIUS_ME(p)
-         !END DO
-         
          !> NEIGHBOR SEARCH
          CALL NEIGHBOUR_ME
-
-!!$         DO P = 1, PARTICLES
-!!$            PRINT*,"PARTICLE: ",P
-!!$            NB_CONTACTS = 0
-!!$            CC_START = 1
-!!$            IF (P.GT.1) CC_START = NEIGHBOR_INDEX_ME(P-1)
-!!$            CC_END = NEIGHBOR_INDEX_ME(P)
-!!$            NB_CONTACTS = NB_CONTACTS + CC_END - CC_START
-!!$                        
-!!$            !> CONTACTS LOOP
-!!$            DO CC = CC_START, CC_END-1
-!!$               I = NEIGHBORS_ME(CC)
-!!$               IF(IS_NONEXISTENT(I)) THEN
-!!$                  PRINT*,"I NEXISTE PAS"
-!!$                  CYCLE
-!!$               END IF
-!!$
-!!$               PRINT*,"CONTACT: ",P,I
-!!$               PRINT*,"POSITION P: ",DES_POS_DEMI_ME(P,1:2)
-!!$               PRINT*,"POSITION I: ",DES_POS_DEMI_ME(I,1:2)
-!!$               
-!!$            END DO
-!!$         END DO
          
-!!$         CALL MPI_FINALIZE(IERR)
-!!$         STOP
-
-! ============================================================================ !         
-! ============================================================================ !         
-! ============================================================================ !         
-
          !> INITIALIZATION OF ACTIVE SET PARAMETERS
          PN = 0
          VM = 0
@@ -271,7 +187,7 @@ MODULE DES_TIME_MARCH
          ACTIVE = .FALSE.
          
          !> NLGS LOOP
-         DO NLGS = 1, 1
+         DO NLGS = 1, 10
          
             DO P = 1, PARTICLES
                
@@ -286,15 +202,14 @@ MODULE DES_TIME_MARCH
                   I = NEIGHBORS_ME(CC)
                   IF(IS_NONEXISTENT(I)) CYCLE
                   
-                  PRINT*,"! ==================================================== !"
-                  PRINT*,"! NOMBRE DE CONTACTS: ",NB_CONTACTS,"                    !"
-                  PRINT*,"! CONNECTIVITE P -- I: ",P,"<==>",I,"  !"
-                  PRINT*,"! ==================================================== !"
+                  !PRINT*,"! ==================================================== !"
+                  !PRINT*,"! NOMBRE DE CONTACTS: ",NB_CONTACTS,"                    !"
+                  !PRINT*,"! CONNECTIVITE P -- I: ",P,"<==>",I,"  !"
+                  !PRINT*,"! ==================================================== !"
                   
 ! ==================================================================== !               
 ! ================== CONTACT CONDITION + ACTIVE SET ================== !      
-! ==================================================================== !      
-                                 
+! ==================================================================== !                                       
                   DX = DES_POS_DEMI_ME(P,1) - DES_POS_DEMI_ME(I,1)
                   DY = DES_POS_DEMI_ME(P,2) - DES_POS_DEMI_ME(I,2)
                   DZ = DES_POS_DEMI_ME(P,3) - DES_POS_DEMI_ME(I,3)
@@ -369,8 +284,8 @@ MODULE DES_TIME_MARCH
                      DES_POS_FREE_ME(I,2)=DES_POS_OLD_ME(I,2) + DT*DES_VEL_NEW_ME(I,2)
                      DES_POS_FREE_ME(I,3)=DES_POS_OLD_ME(I,3) + DT*DES_VEL_NEW_ME(I,3)
                                           
-!                     CALL MPI_FINALIZE(IERR)
-!                     STOP
+                     !CALL MPI_FINALIZE(IERR)
+                     !STOP
                      
                   ELSE
                      PN(CC) = 0
@@ -399,6 +314,7 @@ MODULE DES_TIME_MARCH
          !CALL MPI_FINALIZE(IERR)
          !STOP
          
+         PRINT*,"! ============================================================================================================================== !"
          DO P = 1, PARTICLES
             
             DES_POS_NEW_ME(P,1) = DES_POS_DEMI_ME(P,1) + 0.5*DT*DES_VEL_NEW_ME(P,1)
@@ -413,20 +329,16 @@ MODULE DES_TIME_MARCH
             DES_POS_NEW(P,1:3) = DES_POS_NEW_ME(P,1:3)
             DES_VEL_NEW(P,1:3) = DES_VEL_NEW_ME(P,1:3)
             
-            PRINT*,"    PARTICLE: ",P,"|","   POSITION: ",DES_POS_OLD_ME(P,1:3) 
-            PRINT*,"    PARTICLE: ",P,"|","   VELOCITY: ",DES_VEL_OLD_ME(P,1:3) 
-
-         END DO
+            PRINT*,"TIME: ",NN*DT,"|","PARTICLE: ",P,"|",DES_POS_OLD_ME(P,1:3) 
             
-         PRINT*,"! ================================================================================================================ ! "
-
+         END DO
+                  
          !CALL MPI_FINALIZE(IERR)
          !STOP
              
 ! ==================================================================== !                 
 ! ==================================================================== !               
-! ==================================================================== !    
-                    
+! ==================================================================== !                        
          ! Update time to reflect changes
          S_TIME = S_TIME + DTSOLID
          
@@ -462,29 +374,22 @@ MODULE DES_TIME_MARCH
 !                                                                      !
 !^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!
        SUBROUTINE DES_TIME_END
-         USE DISCRETELEMENT
          IMPLICIT NONE
+
+         PRINT*,"! ============================================================================================================================== !"
          
-         PRINT*,""
-         PRINT*,""
-         PRINT*,"! ======================================== ! "
-         PRINT*,"! =========> END DEM SIMULATIONS <======== ! "
-         PRINT*,"! ======================================== ! "
-                  
+         PRINT*,"! ==================== ! "
+         PRINT*,"! ==> DES_TIME_END <== ! "
+         PRINT*,"! ==================== ! "
+         
          ! Reset the discrete time step to original value.
          DTSOLID = DTSOLID_TMP
          
-         !CALL MPI_FINALIZE(IERR)
-         !STOP
+         CALL MPI_FINALIZE(IERR)
+         STOP
          
        END SUBROUTINE DES_TIME_END
        
      END MODULE DES_TIME_MARCH
-     
-
-
-
-
-
 
 

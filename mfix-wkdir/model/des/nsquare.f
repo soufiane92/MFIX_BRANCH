@@ -200,42 +200,43 @@
 
             R_LM = DES_RADIUS_ME(L) + DES_RADIUS_ME(LL)
             R_LM = FACTOR_RLM*R_LM
-
+            !PRINT*,"RLM: ",LL,R_LM
 
             IF (DES_PERIODIC_WALLS) THEN
-               XPOS(:) = DES_POS_NEW_ME(LL,1)
-               YPOS(:) = DES_POS_NEW_ME(LL,2)
+               XPOS(:) = DES_POS_DEMI_ME(LL,1)
+               YPOS(:) = DES_POS_DEMI_ME(LL,2)
                II = 1
                JJ = 1
                KK = 1
+	       
 
                IF(DES_PERIODIC_WALLS_X) THEN
-                  IF (DES_POS_NEW_ME(L,1) + R_LM > X_MAX) THEN
+                  IF (DES_POS_DEMI_ME(L,1) + R_LM > X_MAX) THEN
                      II = 2
-                     XPOS(II) = DES_POS_NEW_ME(LL,1) + XLENGTH
-                  ELSEIF (DES_POS_NEW_ME(L,1) - R_LM < X_MIN) THEN
+                     XPOS(II) = DES_POS_DEMI_ME(LL,1) + XLENGTH
+                  ELSEIF (DES_POS_DEMI_ME(L,1) - R_LM < X_MIN) THEN
                      II = 2
-                     XPOS(II) = DES_POS_NEW_ME(LL,1) - XLENGTH
+                     XPOS(II) = DES_POS_DEMI_ME(LL,1) - XLENGTH
                   ENDIF
                ENDIF
                IF(DES_PERIODIC_WALLS_Y) THEN
-                  IF (DES_POS_NEW_ME(L,2) + R_LM > Y_MAX) THEN
+                  IF (DES_POS_DEMI_ME(L,2) + R_LM > Y_MAX) THEN
                      JJ = 2
-                     YPOS(JJ) = DES_POS_NEW_ME(LL,2) + YLENGTH
-                  ELSEIF (DES_POS_NEW_ME(L,2) - R_LM < Y_MIN) THEN
+                     YPOS(JJ) = DES_POS_DEMI_ME(LL,2) + YLENGTH
+                  ELSEIF (DES_POS_DEMI_ME(L,2) - R_LM < Y_MIN) THEN
                      JJ = 2
-                     YPOS(JJ) = DES_POS_NEW_ME(LL,2) - YLENGTH
+                     YPOS(JJ) = DES_POS_DEMI_ME(LL,2) - YLENGTH
                   ENDIF
                ENDIF
                IF(DO_K) THEN
-                  ZPOS(:) = DES_POS_NEW_ME(LL,3)
+                  ZPOS(:) = DES_POS_DEMI_ME(LL,3)
                   IF(DES_PERIODIC_WALLS_Z) THEN
-                     IF (DES_POS_NEW_ME(L,3) + R_LM > Z_MAX) THEN
+                     IF (DES_POS_DEMI_ME(L,3) + R_LM > Z_MAX) THEN
                         KK = 2
-                        ZPOS(KK) = DES_POS_NEW_ME(LL,3) + ZLENGTH
-                     ELSEIF (DES_POS_NEW_ME(L,3) - R_LM < Z_MIN) THEN
+                        ZPOS(KK) = DES_POS_DEMI_ME(LL,3) + ZLENGTH
+                     ELSEIF (DES_POS_DEMI_ME(L,3) - R_LM < Z_MIN) THEN
                         KK = 2
-                        ZPOS(KK) = DES_POS_NEW_ME(LL,3) - ZLENGTH
+                        ZPOS(KK) = DES_POS_DEMI_ME(LL,3) - ZLENGTH
                      ENDIF
                   ENDIF
                ENDIF
@@ -248,12 +249,12 @@
                      IF (DO_K) THEN
                         DO K = 1,KK
                            TMPPOS(3) = ZPOS(K)
-                           DISTVEC(:) = TMPPOS(:) - DES_POS_NEW_ME(L,:)
+                           DISTVEC(:) = TMPPOS(:) - DES_POS_DEMI_ME(L,:)
                            DIST = dot_product(DISTVEC,DISTVEC)
                            IF (DIST.LE.R_LM) EXIT OUTER
                         ENDDO
                      ELSE
-                        DISTVEC(:) = TMPPOS(:) - DES_POS_NEW_ME(L,:)
+                        DISTVEC(:) = TMPPOS(:) - DES_POS_DEMI_ME(L,:)
                         DIST = dot_product(DISTVEC,DISTVEC)
                         IF (DIST.LE.R_LM) EXIT OUTER
                      ENDIF
@@ -261,8 +262,9 @@
                ENDDO OUTER
 
             ELSE   ! if .not.des_periodic_walls
-               DISTVEC(:) = DES_POS_NEW_ME(LL,:) - DES_POS_NEW_ME(L,:)
+               DISTVEC(:) = DES_POS_DEMI_ME(LL,:) - DES_POS_DEMI_ME(L,:)
                DIST = dot_product(DISTVEC,DISTVEC)
+	       !PRINT*,"TOTO"
             ENDIF    ! endif des_periodic_walls
 ! ------------------------------
 
