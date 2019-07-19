@@ -60,11 +60,6 @@ MODULE DES_TIME_MARCH
 
         IMPLICIT NONE
         
-        PRINT*,"! ========================================= ! "
-        PRINT*,"! =========> INIT DEM SIMULATIONS <======== ! "
-        PRINT*,"! ========================================= ! "
-        
-        
         RADIUS = HUGE(0D0)
         DO P = 1, PARTICLES
            RADIUS = MIN(RADIUS,DES_RADIUS(P))
@@ -85,40 +80,32 @@ MODULE DES_TIME_MARCH
            PPOS_ME(P,1:3) = PPOS(P,1:3)
            
            DES_POS_NEW_ME(P,1:3) = DES_POS_NEW(P,1:3)
-           
            DES_VEL_NEW_ME(P,1:3) = DES_VEL_NEW(P,1:3)
            
            RO_ME(P) = RO_Sol(P)
            DES_RADIUS_ME(P) = DES_RADIUS(P)
            PMASS_ME(P) = RO_ME(P) * ACOS(-1.0) *  DES_RADIUS_ME(P)**2
            
-           FC_OLD_ME(P,1) = GRAV(1) * PMASS_ME(P)
-           FC_OLD_ME(P,2) = GRAV(2) * PMASS_ME(P)
-           FC_OLD_ME(P,3) = GRAV(3) * PMASS_ME(P)
-           
-           FC_NEW_ME(P,1) = GRAV(1) * PMASS_ME(P)
-           FC_NEW_ME(P,2) = GRAV(2) * PMASS_ME(P)
-           FC_NEW_ME(P,3) = GRAV(3) * PMASS_ME(P)
-           
+           FC_OLD_ME(P,1:3) = GRAV(1:3) * PMASS_ME(P)      
+           FC_NEW_ME(P,1:3) = GRAV(1:3) * PMASS_ME(P)
+                      
            !> MY CFUPDATEOLD
            DES_POS_OLD_ME(P,1:3) = DES_POS_NEW_ME(P,1:3)
-           
            DES_VEL_OLD_ME(P,1:3) = DES_VEL_NEW_ME(P,1:3)
            
            !> OLD ME VARIABLES --> FREE ME VARIABLES
            DES_POS_FREE_ME(P,1:3) = DES_POS_OLD_ME(P,1:3)
-           
            DES_VEL_FREE_ME(P,1:3) = DES_VEL_OLD_ME(P,1:3)
            
            !> OLD ME VARIABLES --> DEMI ME VARIABLES
            DES_POS_DEMI_ME(P,1:3) = DES_POS_OLD_ME(P,1:3)
-           
            DES_VEL_DEMI_ME(P,1:3) = DES_VEL_OLD_ME(P,1:3)
             
         END DO
 
         CALL OUTPUT_MANAGER(.FALSE., .FALSE.)
-        
+
+        OPEN(UNIT=20,FILE='file.dat',ACTION="WRITE",STATUS="REPLACE")
        
       END SUBROUTINE DES_TIME_INIT
 
@@ -141,50 +128,22 @@ MODULE DES_TIME_MARCH
          INTEGER, INTENT(IN) :: NN
          DOUBLE PRECISION :: X, Y
 
-         PRINT*,""
-         PRINT*,""
-         PRINT*,"! ================================================================================================================ ! "
-         PRINT*,"! ==========================> STEP: ",NN," ==> TIME: ",NN*DT," <========================= !"
-         PRINT*,"! ================================================================================================================ ! "
-                                             
          DO P = 1, PARTICLES
             
             !> Q_{K+1/2} =  Q_{K} + 0.5 DT \DOT{Q}_{K} 
-            DES_POS_DEMI_ME(P,1) = DES_POS_OLD_ME(P,1) + 0.5*DT*DES_VEL_OLD_ME(P,1)
-            DES_POS_DEMI_ME(P,2) = DES_POS_OLD_ME(P,2) + 0.5*DT*DES_VEL_OLD_ME(P,2)
-            DES_POS_DEMI_ME(P,3) = DES_POS_OLD_ME(P,3) + 0.5*DT*DES_VEL_OLD_ME(P,3)
-            
-            !> THETA-SCHEMA 0.5
-                      
-            DES_VEL_FREE_ME(P,1) = DES_VEL_OLD_ME(P,1) + 0.5*DT*(FC_OLD_ME(P,1)+&
-                 FC_NEW_ME(P,1))/PMASS_ME(P)
-            DES_VEL_FREE_ME(P,2) = DES_VEL_OLD_ME(P,2) + 0.5*DT*(FC_OLD_ME(P,2)+&
-                 FC_NEW_ME(P,2))/PMASS_ME(P)
-            DES_VEL_FREE_ME(P,3) = DES_VEL_OLD_ME(P,3) + 0.5*DT*(FC_OLD_ME(P,3)+&
-                 FC_NEW_ME(P,3))/PMASS_ME(P)
+            DES_POS_DEMI_ME(P,1:3) = DES_POS_OLD_ME(P,1:3) + 0.5*DT*DES_VEL_OLD_ME(P,1:3)
                         
-            DES_POS_FREE_ME(P,1) = DES_POS_OLD_ME(P,1) + 0.5*DT*(DES_VEL_FREE_ME(P,1)&
-                 +DES_VEL_OLD_ME(P,1))
-            DES_POS_FREE_ME(P,2) = DES_POS_OLD_ME(P,2) + 0.5*DT*(DES_VEL_FREE_ME(P,2)&
-                 +DES_VEL_OLD_ME(P,2))
-            DES_POS_FREE_ME(P,3) = DES_POS_OLD_ME(P,3) + 0.5*DT*(DES_VEL_FREE_ME(P,3)&
-                 +DES_VEL_OLD_ME(P,3))
+            !> THETA-SCHEMA 0.5                      
+            DES_VEL_FREE_ME(P,1:3) = DES_VEL_OLD_ME(P,1:3) + 0.5*DT*(FC_OLD_ME(P,1:3) + FC_NEW_ME(P,1:3))/PMASS_ME(P)                             
+            DES_POS_FREE_ME(P,1:3) = DES_POS_OLD_ME(P,1:3) + 0.5*DT*(DES_VEL_FREE_ME(P,1:3) + DES_VEL_OLD_ME(P,1:3))
+            
             
             !> DOT{Q}_{0}{K+1} =  DOT{Q}_{FREE}{K}
-            DES_VEL_NEW_ME(P,1) = DES_VEL_FREE_ME(P,1)
-            DES_VEL_NEW_ME(P,2) = DES_VEL_FREE_ME(P,2)
-            DES_VEL_NEW_ME(P,3) = DES_VEL_FREE_ME(P,3)
-            
+            DES_VEL_NEW_ME(P,1:3) = DES_VEL_FREE_ME(P,1:3)
+                        
          END DO
+
          
-         !> PARTICLES IN MOTION WITHOUT CONTACT FORCES
-         DO P = 1, PARTICLES
-            DES_POS_NEW(P,1:3) = DES_POS_FREE_ME(P,1:3)
-            DES_VEL_NEW(P,1:3) = DES_VEL_NEW_ME(P,1:3)
-         END DO
-
-         NB_CONTACTS = 0
-
 ! ============================================================================ !
 ! ================================ RIGID WALLS ================================ !
 ! ============================================================================ !
@@ -227,38 +186,8 @@ MODULE DES_TIME_MARCH
 
          END DO
          
-         !DO P = 1, PARTICLES
-         !   PRINT'(5(f15.8,1x))',DES_POS_DEMI_ME(P,1:3),DES_RADIUS_ME(p)
-         !END DO
-         
          !> NEIGHBOR SEARCH
          CALL NEIGHBOUR_ME
-
-!!$         DO P = 1, PARTICLES
-!!$            PRINT*,"PARTICLE: ",P
-!!$            NB_CONTACTS = 0
-!!$            CC_START = 1
-!!$            IF (P.GT.1) CC_START = NEIGHBOR_INDEX_ME(P-1)
-!!$            CC_END = NEIGHBOR_INDEX_ME(P)
-!!$            NB_CONTACTS = NB_CONTACTS + CC_END - CC_START
-!!$                        
-!!$            !> CONTACTS LOOP
-!!$            DO CC = CC_START, CC_END-1
-!!$               I = NEIGHBORS_ME(CC)
-!!$               IF(IS_NONEXISTENT(I)) THEN
-!!$                  PRINT*,"I NEXISTE PAS"
-!!$                  CYCLE
-!!$               END IF
-!!$
-!!$               PRINT*,"CONTACT: ",P,I
-!!$               PRINT*,"POSITION P: ",DES_POS_DEMI_ME(P,1:2)
-!!$               PRINT*,"POSITION I: ",DES_POS_DEMI_ME(I,1:2)
-!!$               
-!!$            END DO
-!!$         END DO
-         
-!!$         CALL MPI_FINALIZE(IERR)
-!!$         STOP
 
 ! ============================================================================ !         
 ! ============================================================================ !         
@@ -271,11 +200,11 @@ MODULE DES_TIME_MARCH
          ACTIVE = .FALSE.
          
          !> NLGS LOOP
-         DO NLGS = 1, 1
+         DO NLGS = 1, 10
          
+	    NB_CONTACTS = 0
             DO P = 1, PARTICLES
                
-               NB_CONTACTS = 0
                CC_START = 1
                IF (P.GT.1) CC_START = NEIGHBOR_INDEX_ME(P-1)
                CC_END = NEIGHBOR_INDEX_ME(P)
@@ -285,11 +214,13 @@ MODULE DES_TIME_MARCH
                DO CC = CC_START, CC_END-1
                   I = NEIGHBORS_ME(CC)
                   IF(IS_NONEXISTENT(I)) CYCLE
+
+                  !PRINT*,CC,P,I
                   
-                  PRINT*,"! ==================================================== !"
-                  PRINT*,"! NOMBRE DE CONTACTS: ",NB_CONTACTS,"                    !"
-                  PRINT*,"! CONNECTIVITE P -- I: ",P,"<==>",I,"  !"
-                  PRINT*,"! ==================================================== !"
+                  !PRINT*,"! ==================================================== !"
+                  !PRINT*,"! NOMBRE DE CONTACTS: ",NB_CONTACTS,"                    !"
+                  !PRINT*,"! CONNECTIVITE P -- I: ",P,"<==>",I,"  !"
+                  !PRINT*,"! ==================================================== !"
                   
 ! ==================================================================== !               
 ! ================== CONTACT CONDITION + ACTIVE SET ================== !      
@@ -298,47 +229,32 @@ MODULE DES_TIME_MARCH
                   DX = DES_POS_DEMI_ME(P,1) - DES_POS_DEMI_ME(I,1)
                   DY = DES_POS_DEMI_ME(P,2) - DES_POS_DEMI_ME(I,2)
                   DZ = DES_POS_DEMI_ME(P,3) - DES_POS_DEMI_ME(I,3)
-                  
-                  !PRINT*,"--> DX: ",DX
-                  
+                                    
                   !NEW VARIABLE S = SQRT(DX**2 + DY**2 + DZ**2)
                   NX = DX / SQRT(DX**2 + DY**2 + DZ**2)
                   NY = DY / SQRT(DX**2 + DY**2 + DZ**2)
                   NZ = DZ / SQRT(DX**2 + DY**2 + DZ**2)
-                  
-                  !PRINT*,"--> NX: ",NX
-                  
+                                    
                   S = SQRT(DX**2+DY**2+DZ**2)-(DES_RADIUS_ME(P)+DES_RADIUS_ME(I))
-                  
-                  !PRINT*,"--> S: ",S
-                  
+                                    
                   IF (S<0) THEN     ! CONTACT CONDITION
                      
                      UN_OLD = (DES_VEL_OLD_ME(P,1)-DES_VEL_OLD_ME(I,1))*NX + &
                           (DES_VEL_OLD_ME(P,2)-DES_VEL_OLD_ME(I,2))*NY + &
                           (DES_VEL_OLD_ME(P,3)-DES_VEL_OLD_ME(I,3))*NZ
-                        
-                     !PRINT*,"--> UN_OLD: ",UN_OLD
+                     
                      
                      UN_NEW = (DES_VEL_NEW_ME(P,1)-DES_VEL_NEW_ME(I,1))*NX + &
                           (DES_VEL_NEW_ME(P,2)-DES_VEL_NEW_ME(I,2))*NY + &
                           (DES_VEL_NEW_ME(P,3)-DES_VEL_NEW_ME(I,3))*NZ
-                     
-                     !PRINT*,"--> UN_NEW: ",UN_NEW
-                     
+                                          
                      VM(CC) = (UN_NEW + UN_OLD * EN) / (1 + EN)
-                     
-                     !PRINT*,"--> VM(CC): ",VM(CC)
-                     
+                                          
                      MEQ = PMASS_ME(P) * PMASS_ME(I) / (PMASS_ME(P) + PMASS_ME(I))
-                     
-                     !PRINT*,"--> MEQ: ",MEQ
-                     
+                                          
                      GAMMA = 1E3                                          
                      TAU_N = PN(CC) - GAMMA * VM(CC) * MEQ / DT
                      
-                     !PRINT*,"--> TAU_N: ",TAU_N
-                                          
                      !> ACTIVE SET
                      IF (TAU_N>0) THEN
                         DPN(CC) = - VM(CC) * MEQ / DT !!* EN
@@ -346,9 +262,7 @@ MODULE DES_TIME_MARCH
                      ELSE
                         DPN(CC) = 0
                      END IF
-                     
-                     !PRINT*,"--> DPN(CC): ",DPN(CC)
-                     
+
                      DES_VEL_NEW_ME(P,1)=DES_VEL_NEW_ME(P,1)+(DPN(CC))*DT/PMASS_ME(P)*NX*(1+EN)
                      DES_VEL_NEW_ME(P,2)=DES_VEL_NEW_ME(P,2)+(DPN(CC))*DT/PMASS_ME(P)*NY*(1+EN)
                      DES_VEL_NEW_ME(P,3)=DES_VEL_NEW_ME(P,3)+(DPN(CC))*DT/PMASS_ME(P)*NZ*(1+EN)
@@ -359,18 +273,11 @@ MODULE DES_TIME_MARCH
                                                                
                      PN(CC) = PN(CC) + DPN(CC)
 
-                     !PRINT*,"--> PN(CC): ",PN(CC)
                                           
-                     DES_POS_FREE_ME(P,1)=DES_POS_OLD_ME(P,1) + DT*DES_VEL_NEW_ME(P,1)
-                     DES_POS_FREE_ME(P,2)=DES_POS_OLD_ME(P,2) + DT*DES_VEL_NEW_ME(P,2)
-                     DES_POS_FREE_ME(P,3)=DES_POS_OLD_ME(P,3) + DT*DES_VEL_NEW_ME(P,3)
+                     DES_POS_FREE_ME(P,1:3)=DES_POS_OLD_ME(P,1:3) + DT*DES_VEL_NEW_ME(P,1:3)
                      
-                     DES_POS_FREE_ME(I,1)=DES_POS_OLD_ME(I,1) + DT*DES_VEL_NEW_ME(I,1)
-                     DES_POS_FREE_ME(I,2)=DES_POS_OLD_ME(I,2) + DT*DES_VEL_NEW_ME(I,2)
-                     DES_POS_FREE_ME(I,3)=DES_POS_OLD_ME(I,3) + DT*DES_VEL_NEW_ME(I,3)
-                                          
-!                     CALL MPI_FINALIZE(IERR)
-!                     STOP
+                     DES_POS_FREE_ME(I,1:3)=DES_POS_OLD_ME(I,1:3) + DT*DES_VEL_NEW_ME(I,1:3)
+
                      
                   ELSE
                      PN(CC) = 0
@@ -395,15 +302,10 @@ MODULE DES_TIME_MARCH
             END IF
             
          END DO
-                  
-         !CALL MPI_FINALIZE(IERR)
-         !STOP
-         
+                           
          DO P = 1, PARTICLES
             
-            DES_POS_NEW_ME(P,1) = DES_POS_DEMI_ME(P,1) + 0.5*DT*DES_VEL_NEW_ME(P,1)
-            DES_POS_NEW_ME(P,2) = DES_POS_DEMI_ME(P,2) + 0.5*DT*DES_VEL_NEW_ME(P,2)
-            DES_POS_NEW_ME(P,3) = DES_POS_DEMI_ME(P,3) + 0.5*DT*DES_VEL_NEW_ME(P,3)
+            DES_POS_NEW_ME(P,1:3) = DES_POS_DEMI_ME(P,1:3) + 0.5*DT*DES_VEL_NEW_ME(P,1:3)
 
             !> NEW ME VARIABLES --> OLD ME VARIABLES 
             DES_POS_OLD_ME(P,1:3) = DES_POS_NEW_ME(P,1:3)  
@@ -411,18 +313,18 @@ MODULE DES_TIME_MARCH
                         
             !> NEW ME VARIABLES --> MFIX VARIABLES 
             DES_POS_NEW(P,1:3) = DES_POS_NEW_ME(P,1:3)
-            DES_VEL_NEW(P,1:3) = DES_VEL_NEW_ME(P,1:3)
+            DES_VEL_NEW(P,1:3) = DES_VEL_NEW_ME(P,1:3)            
             
-            PRINT*,"    PARTICLE: ",P,"|","   POSITION: ",DES_POS_OLD_ME(P,1:3) 
-            PRINT*,"    PARTICLE: ",P,"|","   VELOCITY: ",DES_VEL_OLD_ME(P,1:3) 
-
          END DO
-            
-         PRINT*,"! ================================================================================================================ ! "
 
-         !CALL MPI_FINALIZE(IERR)
-         !STOP
-             
+         PRINT*,DES_POS_NEW(1,1),DES_POS_NEW(2,1),DES_POS_NEW(3,1)
+
+         WRITE(20,'("ZONE T=""",I5 ,""" ")'),NSTEP
+         
+         DO P = 1, PARTICLES
+            WRITE(20,'(10(E15.8,1X))')DES_POS_NEW(P,1),DES_POS_NEW(P,1),DES_RADIUS_ME(P)
+         END DO
+                         
 ! ==================================================================== !                 
 ! ==================================================================== !               
 ! ==================================================================== !    
@@ -444,13 +346,7 @@ MODULE DES_TIME_MARCH
             EXIT_LOOP = .TRUE.
             RETURN
          ENDIF
-         
-         IF(NN == 100) THEN
-            CALL DES_TIME_END
-         END IF
-
-         
-         
+                  
        END SUBROUTINE DES_TIME_STEP
     
 !vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv!
@@ -464,13 +360,7 @@ MODULE DES_TIME_MARCH
        SUBROUTINE DES_TIME_END
          USE DISCRETELEMENT
          IMPLICIT NONE
-         
-         PRINT*,""
-         PRINT*,""
-         PRINT*,"! ======================================== ! "
-         PRINT*,"! =========> END DEM SIMULATIONS <======== ! "
-         PRINT*,"! ======================================== ! "
-                  
+         CLOSE(20)                
          ! Reset the discrete time step to original value.
          DTSOLID = DTSOLID_TMP
          
@@ -480,11 +370,3 @@ MODULE DES_TIME_MARCH
        END SUBROUTINE DES_TIME_END
        
      END MODULE DES_TIME_MARCH
-     
-
-
-
-
-
-
-
