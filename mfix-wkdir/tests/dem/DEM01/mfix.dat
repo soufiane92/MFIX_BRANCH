@@ -16,7 +16,8 @@
 ########################################################################
 
   RUN_NAME = 'DEM01'
-  DESCRIPTION = 'DEM01: Freely falling particle w/wall collision'
+  DESCRIPTION = 'DEM01: FREELY FALLING PARTICLE'
+
 
 #_______________________________________________________________________
 # RUN CONTROL SECTION
@@ -25,10 +26,10 @@
   UNITS = 'SI'
 
   TIME =  0.0
-  TSTOP = 0.2
+  TSTOP = 1.0
 
-  DT =     1.0d-4
-  DT_MAX = 2.0d-4
+  DT =     1.0d-2
+  DT_MAX = 2.0d-2
 
   ENERGY_EQ = .F.
 
@@ -73,14 +74,21 @@
   GRAVITY_Y = 0
   GRAVITY_Z = 0
 
-  PARTICLES = 3                ! Number of particles
+  !PARTICLES = 500               ! Number of particles
+  PARTICLES = 2
+
+  !GENER_PART_CONFIG = .TRUE.
+  
+  NO_K = .FALSE. 
+
+  !FACTOR_RLM=1.5
   
 ! Friction coefficients. (1)
   MEW =   0.0                  ! particle-particle
   MEW_W = 0.0                  ! particle-wall
 
   DES_NEIGHBOR_SEARCH =  1     ! Grid based neighbor search
-  NEIGHBOR_SEARCH_N   = 99     ! Steps between neighbor search
+  NEIGHBOR_SEARCH_N   =  1     ! Steps between neighbor search
 
   DESGRIDSEARCH_IMAX = 1
   DESGRIDSEARCH_JMAX = 1
@@ -110,21 +118,30 @@
 !---------------------------------------------------------------------//
   SOLIDS_MODEL(1) = 'DEM'
 
-  D_p0(1) =       0.20   ! (m)
+  D_p0(1) =       0.2   ! (m)
   RO_s0(1) =   2600.00   ! (kg/m)
 
 
 #_______________________________________________________________________
 # INITIAL CONDITIONS SECTION
 
-  IC_X_w(1) =     0.00   ! (m)
-  IC_X_e(1) =     1.20   ! (m)
-  IC_Y_s(1) =     0.00   ! (m)
-  IC_Y_n(1) =     1.20   ! (m)
-  IC_Z_b(1) =     0.00   ! (m)
-  IC_Z_t(1) =     1.20   ! (m)
+  IC_X_w(1) =     0.0   ! (m)
+  IC_X_e(1) =     1.0   ! (m)
+  IC_Y_s(1) =     0.0   ! (m)
+  IC_Y_n(1) =     1.0   ! (m)
+  IC_Z_b(1) =     0.0   ! (m)
+  IC_Z_t(1) =     1.0   ! (m)
+  
+  !IC_EP_g(1) =    0.1   ! (1)
+  IC_EP_g(1) =    1.0 
 
-  IC_EP_g(1) =    1.00   ! (1)
+  !IC_EP_S(1,1) = 0.9
+
+  !IC_U_S(1,1) = -0.1
+  !IC_V_S(1,1) = 0.1
+  !IC_W_S(1,1) = 0.4
+
+  !IC_THETA_M(1,1) = 0.0
 
   IC_P_g(1) =     0.00   ! (Pa)
 

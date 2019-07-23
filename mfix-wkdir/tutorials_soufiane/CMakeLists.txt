@@ -1,5 +1,6 @@
 set( DMP_TESTS
-  DEM_granular_flow_soufiane
+  2_PARTICLES_HORIZONTAL_COLLISION
+  FREELY_FALLING_PARTICLE
   )
 
 set (TEST_PATH

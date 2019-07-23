@@ -80,6 +80,7 @@
       ENDDO
 
 
+!====================================================== !
 
 ! Set the initial particle data.
       IF(RUN_TYPE == 'NEW') THEN
@@ -90,6 +91,8 @@
                CALL READ_PAR_INPUT
             ENDIF
          ENDIF
+
+! ===================================================== !
 
 ! Set the global ID for the particles and set the ghost cnt
          ighost_cnt = 0

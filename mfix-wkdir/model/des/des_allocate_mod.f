@@ -74,7 +74,7 @@ CONTAINS
 ! For parallel processing the array size required should be either
 ! specified by the user or could be determined from total particles
 ! with some factor.
-      MAX_PIP = merge(0, 4*PARTICLES/numPEs, PARTICLES==UNDEFINED_I)
+      MAX_PIP = merge(0, 10*PARTICLES/numPEs, PARTICLES==UNDEFINED_I)
       MAX_PIP = MAX(MAX_PIP,4)
 
       WRITE(ERR_MSG,1000) trim(iVal(MAX_PIP))
@@ -702,6 +702,7 @@ CONTAINS
            new_size = 2*new_size
         ENDDO
 
+        print*,new_size
         call real_grow(des_radius,new_size)
         call real_grow(RO_Sol,new_size)
         call real_grow(PVOL,new_size)
