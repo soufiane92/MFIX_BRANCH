@@ -77,9 +77,8 @@ MODULE DES_TIME_MARCH
         !> Initialize time stepping variable for pure granular simulations.
         FACTOR = CEILING(real((TSTOP-TIME)/DTSOLID))
         
-        !DT = 0.01 * RADIUS
+        DT = 0.1 * RADIUS
         !DT = 1E-2
-
         EN = 1.0
         
         DT = SQRT(2*(0.5-RADIUS)/10.)/100.
@@ -98,7 +97,8 @@ MODULE DES_TIME_MARCH
            RO_ME(P) = RO_Sol(P)
            DES_RADIUS_ME(P) = DES_RADIUS(P)
            PMASS_ME(P) = RO_ME(P) * ACOS(-1.0) * DES_RADIUS_ME(P)**2
-           
+           !PRINT*,PMASS_ME(P),RO_ME(P),ACOS(-1.0) * DES_RADIUS_ME(P)**2
+           !STOP
            FC_OLD_ME(P,1) = GRAV(1) * PMASS_ME(P)
            FC_OLD_ME(P,2) = -10 * PMASS_ME(P)
            FC_OLD_ME(P,3) = GRAV(3) * PMASS_ME(P)
@@ -114,79 +114,88 @@ MODULE DES_TIME_MARCH
            ! PRINT*,FC_OLD_ME(P,2)
                        
         END DO
+                                        
+        !> 4 particules fictives (2D)
 
-        !STOP
+        ! ========================== !        
+        !               4            !
+        !              ___           !
+        !          1  |__|  3        !
+        !                            !
+        !              2             !
+        ! ========================== !
         
-        !> 4 particules fictives
+        !> MUR 1
         PARTICLES = PARTICLES + 1
         PIP = PIP + 1
-        !print*,particles,PIP,MAX_PIP
         DES_RADIUS(PARTICLES) = 1e8
         DES_POS_NEW(PARTICLES,1) = X_MIN - DES_RADIUS(PARTICLES)
         DES_POS_NEW(PARTICLES,2) = (Y_MIN + Y_MAX)*0.5
         DES_POS_NEW(PARTICLES,3) = (Z_MIN + Z_MAX)*0.5
         DES_VEL_NEW(PARTICLES,1:3) = 0.0
-        PMASS(PARTICLES) = 1e8
+        PMASS_ME(PARTICLES) = 1e12
+        RO_Sol(PARTICLES) = 1e12
         PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
         
-        
+        !> MUR 2
         PARTICLES = PARTICLES + 1
         PIP = PIP + 1
-        !print*,particles,PIP,MAX_PIP        
-        DES_RADIUS(PARTICLES) = 1e8
-        DES_POS_NEW(PARTICLES,1) = X_MAX + DES_RADIUS(PARTICLES)
-        DES_POS_NEW(PARTICLES,2) = (Y_MIN + Y_MAX)*0.5
-        DES_POS_NEW(PARTICLES,3) = (Z_MIN + Z_MAX)*0.5
-        DES_VEL_NEW(PARTICLES,1:3) = 0.0
-        PMASS(PARTICLES) = 1e8
-        PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
-        
-        
-        PARTICLES = PARTICLES + 1
-        PIP = PIP + 1
-        !print*,particles,PIP,MAX_PIP
         DES_RADIUS(PARTICLES) = 1e8
         DES_POS_NEW(PARTICLES,1) = (X_MIN + X_MAX)*0.5
         DES_POS_NEW(PARTICLES,2) = Y_MIN - DES_RADIUS(PARTICLES)
         DES_POS_NEW(PARTICLES,3) = (Z_MIN + Z_MAX)*0.5
         DES_VEL_NEW(PARTICLES,1:3) = 0.0
-        PMASS(PARTICLES) = 1e8
+        PMASS_ME(PARTICLES) = 1e12
+        RO_Sol(PARTICLES) = 1e12
         PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
         
-        
+        !> MUR 3
         PARTICLES = PARTICLES + 1
         PIP = PIP + 1
-        !print*,particles,PIP,MAX_PIP
+        DES_RADIUS(PARTICLES) = 1e8
+        DES_POS_NEW(PARTICLES,1) = X_MAX + DES_RADIUS(PARTICLES)
+        DES_POS_NEW(PARTICLES,2) = (Y_MIN + Y_MAX)*0.5
+        DES_POS_NEW(PARTICLES,3) = (Z_MIN + Z_MAX)*0.5
+        DES_VEL_NEW(PARTICLES,1:3) = 0.0
+        PMASS_ME(PARTICLES) = 1e12
+        RO_Sol(PARTICLES) = 1e12
+        PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
+        
+        !> MUR 4
+        PARTICLES = PARTICLES + 1
+        PIP = PIP + 1
         DES_RADIUS(PARTICLES) = 1e8
         DES_POS_NEW(PARTICLES,1) = (X_MIN + X_MAX)*0.5
         DES_POS_NEW(PARTICLES,2) = Y_MAX +  DES_RADIUS(PARTICLES) 
         DES_POS_NEW(PARTICLES,3) = (Z_MIN + Z_MAX)*0.5
         DES_VEL_NEW(PARTICLES,1:3) = 0.0
-        PMASS(PARTICLES) = 1e8
+        PMASS_ME(PARTICLES) = 1e12
+        RO_Sol(PARTICLES) = 1e12
         PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
 
-        !> 3D
+        !> 6 en 3D
+        
         PARTICLES = PARTICLES + 1
         PIP = PIP + 1
-        !print*,particles,PIP,MAX_PIP
         DES_RADIUS(PARTICLES) = 1e8
         DES_POS_NEW(PARTICLES,1) = (X_MIN + X_MAX)*0.5
         DES_POS_NEW(PARTICLES,2) = (Y_MIN + Y_MAX)*0.5
         DES_POS_NEW(PARTICLES,3) = Z_MIN - DES_RADIUS(PARTICLES)
         DES_VEL_NEW(PARTICLES,1:3) = 0.0
-        PMASS(PARTICLES) = 1e8
+        PMASS_ME(PARTICLES) = 1e12
+        RO_Sol(PARTICLES) = 1e12
         PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
         
         
         PARTICLES = PARTICLES + 1
         PIP = PIP + 1
-        !print*,particles,PIP,MAX_PIP
         DES_RADIUS(PARTICLES) = 1e8
         DES_POS_NEW(PARTICLES,1) = (X_MIN + X_MAX)*0.5
         DES_POS_NEW(PARTICLES,2) = (Y_MIN + Y_MAX)*0.5
         DES_POS_NEW(PARTICLES,3) = Z_MAX + DES_RADIUS(PARTICLES)
         DES_VEL_NEW(PARTICLES,1:3) = 0.0
-        PMASS(PARTICLES) = 1e8
+        PMASS_ME(PARTICLES) = 1e12
+        RO_Sol(PARTICLES) = 1e12
         PARTICLE_STATE(PARTICLES) = NORMAL_PARTICLE
         
         
@@ -194,22 +203,9 @@ MODULE DES_TIME_MARCH
            DES_POS_OLD(P,1:3) = DES_POS_NEW(P,1:3)
            DES_VEL_OLD(P,1:3) = DES_VEL_NEW(P,1:3)
            DES_RADIUS_ME(P) = DES_RADIUS(P) 
-           PMASS_ME(P) =  PMASS(P)
-           !print*,P,DES_POS_OLD(P,1:3)
-           !print*,P,DES_VEL_OLD(P,1:3)
-        END DO
-
-        !STOP
-
-        ! DO P = 1, PARTICLES
-        !    FC_OLD_ME(P,1) = GRAV(1) * PMASS_ME(P)
-        !    FC_OLD_ME(P,2) = GRAV(2) * PMASS_ME(P)
-        !    FC_OLD_ME(P,3) = GRAV(3) * PMASS_ME(P)
+           !PMASS_ME(P) =  PMASS(P)
            
-        !    FC_NEW_ME(P,1) = GRAV(1) * PMASS_ME(P)
-        !    FC_NEW_ME(P,2) = GRAV(2) * PMASS_ME(P)
-        !    FC_NEW_ME(P,3) = GRAV(3) * PMASS_ME(P)
-        ! END DO
+        END DO
       
         CALL OUTPUT_MANAGER(.FALSE., .FALSE.)
 
@@ -244,6 +240,7 @@ MODULE DES_TIME_MARCH
             
             DES_POS_NEW_ME(P,1:3) = DES_POS_NEW(P,1:3)
             DES_VEL_NEW_ME(P,1:3) = DES_VEL_NEW(P,1:3)
+            
          end DO
 
          DO P = 1, PARTICLES            
@@ -256,6 +253,7 @@ MODULE DES_TIME_MARCH
             
             !> DOT{Q}_{0}{K+1} =  DOT{Q}_{FREE}{K}
             DES_VEL_NEW_ME(P,1:3) = DES_VEL_FREE_ME(P,1:3)
+
          END DO
          
          !> NEIGHBOR SEARCH
@@ -284,31 +282,29 @@ MODULE DES_TIME_MARCH
                   
                   ! ==================================================================== !               
                   ! ================== CONTACT CONDITION + ACTIVE SET ================== !      
-                  ! ==================================================================== !      
-                  
-                  DX = DES_POS_DEMI_ME(P,1) - DES_POS_DEMI_ME(I,1)
-                  DY = DES_POS_DEMI_ME(P,2) - DES_POS_DEMI_ME(I,2)
-                  DZ = DES_POS_DEMI_ME(P,3) - DES_POS_DEMI_ME(I,3)
-                  
+                  ! ==================================================================== !                        
+                  DX = DES_POS_DEMI_ME(I,1) - DES_POS_DEMI_ME(P,1)
+                  DY = DES_POS_DEMI_ME(I,2) - DES_POS_DEMI_ME(P,2)
+                  DZ = DES_POS_DEMI_ME(I,3) - DES_POS_DEMI_ME(P,3)
+                                    
                   !NEW VARIABLE S = SQRT(DX**2 + DY**2 + DZ**2)
                   NX = DX / SQRT(DX**2 + DY**2 + DZ**2)
                   NY = DY / SQRT(DX**2 + DY**2 + DZ**2)
                   NZ = DZ / SQRT(DX**2 + DY**2 + DZ**2)
-                  
-                  
+                                    
                   S = SQRT(DX**2+DY**2+DZ**2)-(DES_RADIUS_ME(P)+DES_RADIUS_ME(I))
                   
                   IF (S<0) THEN     ! CONTACT CONDITION
                      
                      UN_OLD = &
-                          (DES_VEL_OLD_ME(P,1)-DES_VEL_OLD_ME(I,1))*NX + &
-                          (DES_VEL_OLD_ME(P,2)-DES_VEL_OLD_ME(I,2))*NY + &
-                          (DES_VEL_OLD_ME(P,3)-DES_VEL_OLD_ME(I,3))*NZ
+                          (DES_VEL_OLD_ME(I,1)-DES_VEL_OLD_ME(P,1))*NX + &
+                          (DES_VEL_OLD_ME(I,2)-DES_VEL_OLD_ME(P,2))*NY + &
+                          (DES_VEL_OLD_ME(I,3)-DES_VEL_OLD_ME(P,3))*NZ
                         
                      UN_NEW = &
-                          (DES_VEL_NEW_ME(P,1)-DES_VEL_NEW_ME(I,1))*NX + &
-                          (DES_VEL_NEW_ME(P,2)-DES_VEL_NEW_ME(I,2))*NY + &
-                          (DES_VEL_NEW_ME(P,3)-DES_VEL_NEW_ME(I,3))*NZ
+                          (DES_VEL_NEW_ME(I,1)-DES_VEL_NEW_ME(P,1))*NX + &
+                          (DES_VEL_NEW_ME(I,2)-DES_VEL_NEW_ME(P,2))*NY + &
+                          (DES_VEL_NEW_ME(I,3)-DES_VEL_NEW_ME(P,3))*NZ
                      
                      VM(CC) = (UN_NEW + UN_OLD * EN) / (1 + EN)
                      
@@ -321,18 +317,18 @@ MODULE DES_TIME_MARCH
                      IF (TAU_N>0) THEN
                         DPN(CC) = - VM(CC) * MEQ / DT !!* EN
                         ACTIVE(CC) = .TRUE.
-                        PRINT*,NN,DPN(CC)
+
                      ELSE
                         DPN(CC) = 0
                      END IF
                      
-                     DES_VEL_NEW_ME(P,1)=DES_VEL_NEW_ME(P,1)+(DPN(CC))*DT/PMASS_ME(P)*NX!/(1+EN)
-                     DES_VEL_NEW_ME(P,2)=DES_VEL_NEW_ME(P,2)+(DPN(CC))*DT/PMASS_ME(P)*NY!/(1+EN)
-                     DES_VEL_NEW_ME(P,3)=DES_VEL_NEW_ME(P,3)+(DPN(CC))*DT/PMASS_ME(P)*NZ!/(1+EN)
+                     DES_VEL_NEW_ME(P,1)=DES_VEL_NEW_ME(P,1)+(-DPN(CC))*DT/PMASS_ME(P)*NX!/(1+EN)
+                     DES_VEL_NEW_ME(P,2)=DES_VEL_NEW_ME(P,2)+(-DPN(CC))*DT/PMASS_ME(P)*NY!/(1+EN)
+                     DES_VEL_NEW_ME(P,3)=DES_VEL_NEW_ME(P,3)+(-DPN(CC))*DT/PMASS_ME(P)*NZ!/(1+EN)
                      
-                     DES_VEL_NEW_ME(I,1)=DES_VEL_NEW_ME(I,1)+(-DPN(CC))*DT/PMASS_ME(I)*NX!/(1+EN)
-                     DES_VEL_NEW_ME(I,2)=DES_VEL_NEW_ME(I,2)+(-DPN(CC))*DT/PMASS_ME(I)*NY!/(1+EN)
-                     DES_VEL_NEW_ME(I,3)=DES_VEL_NEW_ME(I,3)+(-DPN(CC))*DT/PMASS_ME(I)*NZ!/(1+EN)
+                     DES_VEL_NEW_ME(I,1)=DES_VEL_NEW_ME(I,1)+(DPN(CC))*DT/PMASS_ME(I)*NX!/(1+EN)
+                     DES_VEL_NEW_ME(I,2)=DES_VEL_NEW_ME(I,2)+(DPN(CC))*DT/PMASS_ME(I)*NY!/(1+EN)
+                     DES_VEL_NEW_ME(I,3)=DES_VEL_NEW_ME(I,3)+(DPN(CC))*DT/PMASS_ME(I)*NZ!/(1+EN)
                                                                
                      PN(CC) = PN(CC) + DPN(CC)
                                           
@@ -393,7 +389,7 @@ MODULE DES_TIME_MARCH
       
          WRITE(1024,*)"ZONE"
          DO P = 1, PARTICLES - 6
-            !PRINT*,TIME,NSTEP,DES_POS_NEW(1,2),DES_POS_NEW(2,2),DES_POS_NEW(3,2)
+            PRINT*,TIME,NSTEP,DES_POS_NEW(1,2),DES_POS_NEW(2,2),DES_POS_NEW(3,2)
             WRITE(1024,'(10(e15.8,1x))'),DES_POS_NEW(P,1:3),DES_VEL_NEW(P,1:3),DES_RADIUS(P)
          END DO
 
