@@ -74,10 +74,10 @@
   !GRAVITY_Y = 0
   !GRAVITY_Z = 0
 
-  PARTICLES = 500               ! Number of particles
-  !PARTICLES = 1
+  !PARTICLES = 500               ! Number of particles
+  PARTICLES = 1
 
-  GENER_PART_CONFIG = .TRUE.
+  !GENER_PART_CONFIG = .TRUE.
   
   NO_K = .FALSE. 
 
@@ -132,16 +132,16 @@
   IC_Z_b(1) =     0.0   ! (m)
   IC_Z_t(1) =     1.0   ! (m)
   
-  IC_EP_g(1) =    0.1   ! (1)
-  !IC_EP_g(1) =    1.0 
+  !IC_EP_g(1) =    0.1   ! (1)
+  IC_EP_g(1) =    1.0 
 
-  IC_EP_S(1,1) = 0.9
+  !IC_EP_S(1,1) = 0.9
 
-  IC_U_S(1,1) = 0.0
-  IC_V_S(1,1) = 0.0
-  IC_W_S(1,1) = 0.0
+  !IC_U_S(1,1) = 0.0
+  !IC_V_S(1,1) = 0.0
+  !IC_W_S(1,1) = 0.0
 
-  IC_THETA_M(1,1) = 0.0
+  !IC_THETA_M(1,1) = 0.0
 
   IC_P_g(1) =     0.00   ! (Pa)
 
