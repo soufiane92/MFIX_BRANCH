@@ -331,7 +331,7 @@ MODULE DES_TIME_MARCH
                      DES_VEL_NEW_ME(I,3)=DES_VEL_NEW_ME(I,3)+(DPN(CC))*DT/PMASS_ME(I)*NZ!/(1+EN)
                      
                      PN(CC) = PN(CC) + DPN(CC)
-                     PRINT*,PN(CC)
+                     !PRINT*,PN(CC)
                                           
                      DES_POS_FREE_ME(P,1)=DES_POS_OLD_ME(P,1) + DT*DES_VEL_NEW_ME(P,1)
                      DES_POS_FREE_ME(P,2)=DES_POS_OLD_ME(P,2) + DT*DES_VEL_NEW_ME(P,2)
