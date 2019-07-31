@@ -108,7 +108,7 @@ PROGRAM MAIN
 
   DT = 0.1*RADIUS
   !DT = 1E-2
-  EN = 1.0
+  EN = 0.5
   
   IF  (TEST_CASE==FREE_FALLING_PARTICLE) THEN
      ! 100 PAS DE TEMPS AVANT DE TOMBER EXACTEMENT SUR LA PAROI
@@ -227,7 +227,8 @@ PROGRAM MAIN
               P_NEW(Q)%V = P_NEW(Q)%V + (+DPN(C))*DT/P_NEW(Q)%M*NY!/(1+EN)
               
               PN(C)=PN(C)+DPN(C)
-
+              PRINT*,PN(C)
+              
               !P_FREE(P)%X = P_OLD(P)%X + DT*0.5*(P_NEW(P)%U + P_OLD(P)%U )
               !P_FREE(P)%Y = P_OLD(P)%Y + DT*0.5*(P_NEW(P)%V + P_OLD(P)%V )
               
