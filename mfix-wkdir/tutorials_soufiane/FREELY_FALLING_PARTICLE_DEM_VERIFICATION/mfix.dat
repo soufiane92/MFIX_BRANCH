@@ -26,7 +26,7 @@
   UNITS = 'SI'
 
   TIME =  0.0
-  TSTOP = 0.5
+  TSTOP = 5.0
 
   DT =     1.0d-2
   DT_MAX = 2.0d-2
